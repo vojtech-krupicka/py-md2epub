@@ -5,13 +5,12 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Debug Md2ePub build",
+            "name": "Md2ePub -- build",
             "type": "debugpy",
             "request": "launch",
             "justMyCode": false,
             "cwd": "${workspaceFolder}",
-            "console": "integratedTerminal",
-            "program": "${workspaceFolder}/.venv/Scripts/md2epub.exe",
+            "module": "md2epub",
             "args": [
                 "-v",
                 "build",

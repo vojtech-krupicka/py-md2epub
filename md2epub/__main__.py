@@ -121,3 +121,7 @@ def build_command(**kwargs):
     from .commands import build
 
     build.run(**kwargs)
+
+
+if __name__ == "__main__":
+    cli()

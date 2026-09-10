@@ -1,4 +1,4 @@
-# md2epub
+# Markdown 2 ePUB
 
 A command-line tool that builds valid EPUB publications from Markdown chapters, driven by a YAML/JSON manifest file.
 
