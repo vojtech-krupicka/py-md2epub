@@ -1,0 +1,42 @@
+[build-system]
+requires      = ["setuptools>=61.0.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "Md2ePub"
+dynamic = ["version"]
+description = "A simple python program which creates ePub publication from given list of chapters written in Markdown."
+readme = {file = 'README.md', content-type='text/markdown'}
+authors = [{ name = "Vojtěch Krupička", email = "voker@email.cz" }]
+license = { file = "LICENSE" }
+classifiers = [
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+]
+keywords = ["markdown", "epub", "epub-builder"]
+dependencies = [
+    "click",
+    "kachlog",
+    "markdown",
+    "pydantic", 
+    "jinja2", 
+    "pyyaml",
+]
+requires-python = ">=3.9"
+
+[project.optional-dependencies]
+dev = ["black", "pylint", "pip-tools", "pytest"]
+
+[project.urls]
+Homepage = "https://github.com/vojtech-krupicka/md2epub"
+Documentation = "https://github.com/vojtech-krupicka/md2epub/blob/master/README.md"
+Repository = "https://github.com/vojtech-krupicka/md2epub"
+Issues = "https://github.com/vojtech-krupicka/md2epub/issues"
+Changelog = "https://github.com/vojtech-krupicka/md2epub/blob/master/CHANGELOG.md"
+
+[project.scripts]
+md2epub = "md2epub.__main__:cli"
+
+[tool.setuptools]
+packages = ["md2epub"]
