@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+import sys
 from functools import partial, wraps
 from pathlib import Path
 
@@ -12,10 +13,8 @@ from md2epub.utils.exceptions import catch_exception
 from md2epub.utils.timing import timing
 
 # Defaults
-defaul_log_cfg_path = "/app/conf/logging.yaml"
+defaul_log_cfg_path = Path(__file__) / "../conf/logging.yaml"
 default_log_level = logging.INFO
-# default_etcd_max_age = 3600
-# default_etcd_lock_ttl = 3600
 
 # region Click default options
 
@@ -58,13 +57,13 @@ def quiet_option(f):
 
 
 def log_cfg_path_option(f):
-    log_cfg_path_type = click.Path(exists=True, writable=True, resolve_path=True, path_type=Path)
+    log_cfg_path_type = click.Path(exists=True, writable=False, resolve_path=True, path_type=Path)
     return click.option(
         "--log-cfg-path",
         type=log_cfg_path_type,
-        default=defaul_log_cfg_path,
+        default=defaul_log_cfg_path.as_posix(),
         metavar="LOG_CONF_FILE",
-        envvar="LOG_CONF_FILE",
+        envvar="MD2EPUB_LOG_CONF_FILE",
         help=f"Path to the logging config file in YAML format (default '{defaul_log_cfg_path}').",
     )(f)
 
@@ -125,6 +124,7 @@ def md2epub_command(func=None, *gargs, **gkwargs):
             env.logger.info(f"Command '{cmd_name}' finished successfully in {t}.")
         except Exception:
             env.logger.exception(f"Error in '{cmd_name}' command!")
+            sys.exit(1)
 
     return wrapper
 
@@ -143,7 +143,7 @@ input_manifest_argument = click.argument(
     type=click.Path(exists=True, resolve_path=True, path_type=Path),
     default=None,
     metavar="MANIFEST",
-    envvar="MANIFEST_ARGUMENT",
+    envvar="MD2EPUB_MANIFEST_ARGUMENT",
     help="Path to the input manifest file.",
 )
 
@@ -153,7 +153,7 @@ output_epub_argument = click.argument(
     default=None,
     required=False,
     metavar="EPUB_FILE",
-    envvar="EPUB_FILE_ARGUMENT",
+    envvar="MD2EPUB_EPUB_ARGUMENT",
     help="Path to the output EPUB file.",
 )
 

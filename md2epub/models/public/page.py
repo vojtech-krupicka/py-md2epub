@@ -8,6 +8,7 @@ from pydantic import BaseModel, Field, computed_field, field_validator
 
 from md2epub.core.environment import get_environment
 from md2epub.models.public.common import Author, Contributor, Identifier
+from md2epub.utils.utils import safe_join
 
 # region Enums
 
@@ -52,10 +53,17 @@ class OpfGuideType(StrEnum):
 # region Content base model
 
 
+# Not only dots (`.`, `..`), otherwise the name could point to a parent folder.
+# No look-around: pydantic uses the Rust regex engine, which doesn't support it.
+BOOK_CONTENT_NAME_PATTERN = r"^\.*[A-Za-z0-9_-][A-Za-z0-9._-]*$"
+
+BookContentName = Annotated[str, Field(pattern=BOOK_CONTENT_NAME_PATTERN)]
+
+
 class BookContent(BaseModel, validate_assignment=True):
     """Base model for book content, including pages and other elements."""
 
-    name: Annotated[str, Field()]
+    name: Annotated[BookContentName, Field()]
     """Custon name of the book content."""
 
     stylesheets: Annotated[set[Path], Field()] = set()
@@ -114,7 +122,7 @@ class Page(BookContent, validate_assignment=True):
         # If a custom template is set, return that. Otherwise, return the default template path
         # for the page type if it exists. If neither is set, return None.
         if self.custom_template is not None:
-            return self.custom_template
+            return safe_join(env.work_dir, self.custom_template)
         elif self.DEFAULT_TEMPLATE is not None:
             return env.template_dir / self.DEFAULT_TEMPLATE
         else:
@@ -130,7 +138,7 @@ class CoverPage(Page, validate_assignment=True):
     TYPE = PageType.Cover
     DEFAULT_TEMPLATE = Path("cover.xhtml.jinja")
 
-    name: Annotated[str, Field()] = "cover"
+    name: Annotated[BookContentName, Field()] = "cover"
     opf_spine_add: Annotated[bool, Field()] = True
     opf_guide_type: Annotated[OpfGuideType | None, Field()] = OpfGuideType.Cover
     opf_guide_title: Annotated[str, Field()] = "Cover"
@@ -144,7 +152,7 @@ class TitlePage(Page, validate_assignment=True):
     TYPE = PageType.Title
     DEFAULT_TEMPLATE = Path("title.xhtml.jinja")
 
-    name: Annotated[str, Field()] = "title"
+    name: Annotated[BookContentName, Field()] = "title"
     opf_spine_add: Annotated[bool, Field()] = True
     opf_guide_type: Annotated[OpfGuideType | None, Field()] = OpfGuideType.TitlePage
     opf_guide_title: Annotated[str, Field()] = "Title"
@@ -161,7 +169,7 @@ class TocPage(Page, validate_assignment=True):
     TYPE = PageType.Toc
     DEFAULT_TEMPLATE = Path("toc.xhtml.jinja")
 
-    name: Annotated[str, Field()] = "toc"
+    name: Annotated[BookContentName, Field()] = "toc"
     opf_spine_add: Annotated[bool, Field()] = True
     opf_guide_type: Annotated[OpfGuideType | None, Field()] = OpfGuideType.TOC
     opf_guide_title: Annotated[str, Field()] = "Table of Contents"
@@ -177,7 +185,7 @@ class Chapter(Page, validate_assignment=True):
     TYPE = PageType.Chapter
     DEFAULT_TEMPLATE = Path("chapter.xhtml.jinja")
 
-    name: Annotated[str, Field()] = "chapter"
+    name: Annotated[BookContentName, Field()] = "chapter"
     opf_spine_add: Annotated[bool, Field()] = True
     add_to_toc: Annotated[bool, Field()] = True
 
@@ -201,7 +209,7 @@ class CustomPage(Page, validate_assignment=True):
     @computed_field
     @property
     def template_path(self) -> Path:
-        return self.template
+        return safe_join(get_environment().work_dir, self.template)
 
 
 class SubBook(Page, validate_assignment=True):
@@ -214,7 +222,7 @@ class SubBook(Page, validate_assignment=True):
     TYPE = PageType.Book
     DEFAULT_TEMPLATE = None
 
-    name: Annotated[str, Field()] = "subbook"
+    name: Annotated[BookContentName, Field()] = "subbook"
     """Name of the page."""
 
     book: Annotated[Book, Field()]
@@ -289,9 +297,9 @@ class Book(BookContent, validate_assignment=True):
 
     @field_validator("pages", mode="before")
     @classmethod
-    def validate_pages(cls: type, val: list[dict]) -> list[Page]:
-        assert isinstance(val, list)
-        assert len(val) > 0
+    def validate_pages(cls: type, val: list[dict]) -> list[Page] | None:
+        if not isinstance(val, list) or not len(val):
+            return None
 
         pages: list[Page] = []
 

@@ -10,6 +10,7 @@ from md2epub.core.content_collector import ContentCollector
 from md2epub.models.public.page import BookContent
 from md2epub.processors import Processor
 from md2epub.types.epub_content import EpubFile
+from md2epub.utils.utils import safe_join
 
 TModel = TypeVar("TModel")
 
@@ -53,7 +54,7 @@ class ContentProcessor[TModel: BookContent](Processor, abc.ABC):
         result: list[EpubFile] = []
 
         for path in files:
-            full_path = self.env.work_dir / path
+            full_path = safe_join(self.env.work_dir, path)
             if not full_path.exists():
                 self.env.logger.warning(f"File or folder '{path}' not found! Skipping...")
                 continue

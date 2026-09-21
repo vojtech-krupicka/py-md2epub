@@ -47,12 +47,31 @@ class TestEpubWriter:
             Epub().add_file(tmp_path / "nope.png", "OEBPS/nope.png")
 
     @pytest.mark.parametrize("name", ["OEBPS/../../evil.txt", "../evil.txt", "/etc/evil.txt"])
-    @pytest.mark.xfail(
-        strict=True, reason="`Epub.add` writes any entry name, including `..` and absolute names (zip-slip)"
-    )
+    # @pytest.mark.xfail(
+    #     strict=True, reason="`Epub.add` writes any entry name, including `..` and absolute names (zip-slip)"
+    # )
     def test_unsafe_entry_names_are_rejected(self, name: str):
         with pytest.raises((ValueError, RuntimeError)):
             Epub().add_text("x", name)
+
+    @pytest.mark.filterwarnings("ignore:Duplicate name")
+    @pytest.mark.xfail(
+        strict=True, reason="`Epub.add` appends a second entry with the same name, `zipfile` only warns about it"
+    )
+    def test_duplicate_entry_names_are_rejected(self):
+        epub = Epub()
+        epub.add_text("first", "OEBPS/page.xhtml")
+
+        with pytest.raises((ValueError, RuntimeError), match=r"page\.xhtml"):
+            epub.add_text("second", "OEBPS/page.xhtml")
+
+    def test_same_content_under_different_names_is_fine(self, tmp_path: Path):
+        epub = Epub()
+        epub.add_text("same", "OEBPS/a.xhtml")
+        epub.add_text("same", "OEBPS/b.xhtml")
+        epub.save(tmp_path / "book.epub")
+
+        assert zipfile.ZipFile(tmp_path / "book.epub").namelist() == ["OEBPS/a.xhtml", "OEBPS/b.xhtml"]
 
 
 # region EpubFile models
@@ -104,3 +123,17 @@ class TestEpubFile:
         assert OpfFile(content="").dest == Path("OEBPS/content.opf")
         assert NcxFile(content="").dest == Path("OEBPS/toc.ncx")
         assert NcxFile(content="").unique_id == "ncx"
+
+    @pytest.mark.xfail(
+        strict=True,
+        reason="`.txt`/`.xml` files become `TextFile`, whose `content` is never read from the source: copied empty",
+    )
+    @pytest.mark.parametrize("name", ["notes.txt", "meta.xml"])
+    def test_text_files_keep_their_content_when_copied(self, tmp_path: Path, name: str):
+        (tmp_path / name).write_text("important\n", encoding="utf-8")
+        epub = Epub()
+
+        EpubFile.create_from_source(tmp_path / name).add_to_epub(epub)
+        epub.save(tmp_path / "book.epub")
+
+        assert zipfile.ZipFile(tmp_path / "book.epub").read(f"OEBPS/{name}") == b"important\n"

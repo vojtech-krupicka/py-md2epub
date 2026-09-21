@@ -3,6 +3,7 @@
 
 from md2epub.models.public.page import Chapter, CoverPage, CustomPage, SubBook, TitlePage, TocPage
 from md2epub.processors.page_processor import PageProcessor
+from md2epub.utils.utils import safe_join
 
 
 class CoverPageProcessor(PageProcessor[CoverPage]):
@@ -64,11 +65,11 @@ class ChapterPageProcessor(PageProcessor[Chapter]):
         # Even before prepare, we need create HTML content from source
         html_content = self.create_content(self.model.source)
 
-        # Prepare source, stylesheets and files
-        source, stylesheets, _ = self.prepare()
-
         # Overide name with source name
-        source = source.with_stem(self.model.source.stem)
+        source = safe_join(self.env.work_dir, self.model.source).with_suffix(".xhtml")
+
+        # Prepare source, stylesheets and files
+        source, stylesheets, _ = self.prepare(source=source)
 
         # Render and dd content.opf
         content = self.render(

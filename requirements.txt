@@ -1,5 +1,5 @@
 annotated-types
-click
+click>=8.5
 colorama
 iniconfig
 Jinja2

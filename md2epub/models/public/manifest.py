@@ -26,7 +26,7 @@ class Manifest(BaseModel, validate_assignment=True):
     subtitle: Annotated[str, Field(**docs.manifest_subtitle)] = ""
     """The subtitle of the book."""
 
-    author: Annotated[Author, Field()] = Author()
+    author: Annotated[Author, Field(default_factory=Author)]
     """The main author of the book."""
 
     additional_authors: Annotated[list[Author], Field()] = []
@@ -40,7 +40,7 @@ class Manifest(BaseModel, validate_assignment=True):
 
     # region Optional metadata
 
-    book_id: Annotated[BookId, Field()] = BookId()
+    book_id: Annotated[BookId, Field(default_factory=BookId)]
     """The unique ID of the book."""
 
     published: Annotated[str | int | None, Field(**docs.manifest_published)] = None
@@ -81,7 +81,7 @@ class Manifest(BaseModel, validate_assignment=True):
     """Information about rights held in and over the resource.
     see: https://idpf.org/epub/20/spec/OPF_2.0.1_draft.htm#Section2.2.15"""
 
-    calibre: Annotated[CalibreMetadata, Field()] = CalibreMetadata()
+    calibre: Annotated[CalibreMetadata, Field(default_factory=CalibreMetadata)]
     """Calibre metadata for sorting and defining book series and book series index."""
 
     # region Private and other fields
@@ -89,7 +89,7 @@ class Manifest(BaseModel, validate_assignment=True):
     book: Annotated[Book, Field()]
     """Book model containing information about the book."""
 
-    config: Annotated[Config, Field()] = Config()
+    config: Annotated[Config, Field(default_factory=Config)]
     """Config model for epub, parser and markdown converter"""
 
     # region Computed fields and validators
@@ -142,11 +142,11 @@ class Manifest(BaseModel, validate_assignment=True):
 
         data = {}
         with open(input.as_posix(), "r", encoding=encoding) as ifp:
-            if input.suffix == ".json":
+            if input.suffix.lower() == ".json":
                 import json
 
                 data = json.load(ifp)
-            elif input.suffix in (".yaml", ".yml"):
+            elif input.suffix.lower() in (".yaml", ".yml"):
                 import yaml
 
                 data = yaml.safe_load(ifp)

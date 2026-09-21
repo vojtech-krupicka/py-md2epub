@@ -92,11 +92,11 @@ class ContentCollector:
         return True
 
     def add_file(self, file: EpubFile) -> bool:
-        if file.unique_id in self._content:
+        if str(file.dest) in self._content:
             self.env.logger.warning(f"File '{file.source}' alredy collected with id '{file.unique_id}'!")
             return False
 
-        self._content[file.unique_id] = file
+        self._content[str(file.dest)] = file
         return True
 
     def add_spine(self, file: EpubFile, aux: bool = False) -> bool:

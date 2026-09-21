@@ -18,7 +18,7 @@ class Environment:
 
     def set_work_dir(self, work_dir: str | Path | None) -> Environment:
         """Set the working directory for the environment."""
-        self.work_dir = Path(work_dir).resolve() if work_dir is not None else Path().cwd()
+        self.work_dir = (Path(work_dir).resolve() if work_dir is not None else Path().cwd()).expanduser()
         return self
 
     # region Setup

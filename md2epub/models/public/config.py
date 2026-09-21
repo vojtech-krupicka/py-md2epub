@@ -9,7 +9,7 @@ from pydantic import BaseModel, Field, computed_field, model_validator
 class EpubConfig(BaseModel, validate_assignment=True):
     """Application configuration for the Md2ePub from Manifest file."""
 
-    epub_suffix: str = ".epub"
+    epub_suffix: Literal[".epub", ".zip"] = ".epub"
     """The suffix for the output EPUB file."""
 
     html_suffix: str = ".xhtml"

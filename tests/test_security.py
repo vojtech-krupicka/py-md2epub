@@ -19,8 +19,10 @@ from collections.abc import Callable
 from pathlib import Path
 
 import pytest
+from pydantic import ValidationError
 
 from md2epub.commands import build
+from md2epub.models.public.manifest import Manifest
 from tests.conftest import Project
 from tests.helpers import build_or_refuse, leaks
 
@@ -35,8 +37,8 @@ def _book(pages=(), **extra) -> dict:
 
 # id -> (builds the `book` part of the manifest from a dict of references to the outside files, known bug?)
 ESCAPES: dict[str, tuple[Callable[[dict], dict], bool]] = {
-    "chapter-relative": (lambda r: _book([{"type": "chapter", "source": r["md_rel"]}]), True),
-    "chapter-absolute": (lambda r: _book([{"type": "chapter", "source": r["md_abs"]}]), True),
+    "chapter-relative": (lambda r: _book([{"type": "chapter", "source": r["md_rel"]}]), False),
+    "chapter-absolute": (lambda r: _book([{"type": "chapter", "source": r["md_abs"]}]), False),
     "cover-relative": (lambda r: _book([{"type": "cover", "cover_image": r["png_rel"]}]), True),
     "cover-absolute": (lambda r: _book([{"type": "cover", "cover_image": r["png_abs"]}]), False),
     "stylesheet-relative": (lambda r: _book(["text/ch1.md"], stylesheets=[r["css_rel"]]), True),
@@ -168,3 +170,78 @@ def test_output_stays_next_to_the_manifest_by_default(project: Project):
 
     assert [p.name for p in project.root.glob("*.epub")] == ["proj.epub"]
     assert zipfile.is_zipfile(project.root / "proj.epub")
+
+
+# region Names become file and folder names inside the EPUB
+
+# `name` of a book, sub-book or page ends up in a path (`content/<book>/<page>.xhtml`), so it must never be able to
+# point somewhere else. The model allows `[A-Za-z0-9._-]` but not a name made of dots only.
+DANGEROUS_NAMES = [".", "..", "...", "../x", "x/..", "a/b", "/abs", "a\\b", "", "a b"]
+
+
+def _chapter_named(name: str) -> dict:
+    return _book([{"type": "chapter", "name": name, "source": "text/ch1.md"}])
+
+
+def _toc_named(name: str) -> dict:
+    return {"pages": [{"type": "toc", "name": name}, "text/ch1.md"]}
+
+
+def _book_named(name: str) -> dict:
+    return {"name": name}
+
+
+def _sub_book_named(name: str) -> dict:
+    sub = {"name": "part1", "pages": [{"type": "toc"}, "text/ch1.md"]}
+    return _book([{"type": "book", "name": name, "book": sub}])
+
+
+def _sub_book_content_named(name: str) -> dict:
+    sub = {"name": name, "pages": [{"type": "toc"}, "text/ch1.md"]}
+    return _book([{"type": "book", "book": sub}])
+
+
+NAME_PLACES: dict[str, Callable[[str], dict]] = {
+    "chapter": _chapter_named,
+    "toc-page": _toc_named,
+    "book": _book_named,
+    "sub-book-page": _sub_book_named,
+    "sub-book-content": _sub_book_content_named,
+}
+
+
+@pytest.mark.parametrize("place", NAME_PLACES)
+@pytest.mark.parametrize("name", DANGEROUS_NAMES, ids=repr)
+def test_dangerous_names_are_rejected(project: Project, place: str, name: str):
+    project.manifest(book=NAME_PLACES[place](name))
+
+    with pytest.raises(ValidationError):
+        Manifest.load_from_file(project.manifest_path)
+
+
+@pytest.mark.parametrize("place", NAME_PLACES)
+@pytest.mark.parametrize("name", ["part-1", "Prolog", "ch_2", ".hidden", "..a", "a..", "v1.2"], ids=repr)
+def test_harmless_names_are_accepted(project: Project, place: str, name: str):
+    """Control test: the rule must not be stricter than needed."""
+    project.manifest(book=NAME_PLACES[place](name))
+
+    assert Manifest.load_from_file(project.manifest_path).title == "Test Book"
+
+
+@pytest.mark.parametrize("name", ["contents", "my-toc", ".hidden", "..a"])
+def test_page_name_is_the_file_name_and_stays_inside_the_book_folder(project: Project, name: str):
+    project.manifest(book=_toc_named(name))
+
+    epub = zipfile.ZipFile(project.build())
+
+    assert f"OEBPS/content/{name}.xhtml" in epub.namelist()
+    assert leaks(epub) == []
+
+
+@pytest.mark.xfail(
+    strict=True, reason="`with_suffix('.xhtml')` treats `.01` as an extension: 'part.01' -> 'part.xhtml'"
+)
+def test_dots_in_a_page_name_are_kept_in_the_file_name(project: Project):
+    project.manifest(book=_toc_named("part.01"))
+
+    assert "OEBPS/content/part.01.xhtml" in zipfile.ZipFile(project.build()).namelist()

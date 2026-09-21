@@ -17,6 +17,6 @@ def catch_exception(func=None, *, handle, message=None):
             message = f"Error occurs in '{func.__name__}' command!"
 
             get_logger().exception(message)
-            raise click.ClickException(e)
+            raise click.ClickException(str(e))
 
     return wrapper

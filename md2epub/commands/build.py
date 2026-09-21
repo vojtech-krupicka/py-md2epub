@@ -41,11 +41,11 @@ def run(
     # Resolve input path for manifest and try to instantiate it from a model
     manifest_path = resolve_input(input_path)
 
-    # Craete manifest
-    manifest = Manifest.load_from_file(manifest_path)
-
     # Set work_dir for build command
     env.set_work_dir(manifest_path.parent)
+
+    # Create manifest
+    manifest = Manifest.load_from_file(manifest_path)
 
     # Resolve output path for epub
     epub_path = resolve_output(

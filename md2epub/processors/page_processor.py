@@ -32,9 +32,14 @@ class PageProcessor[TModel: Page](ContentProcessor[TModel], abc.ABC):
         self.parent: BookProcessor = parent  # Here parent is never None, always BookProcessor
         self.toc: list = []
 
-    def prepare(self, files: list[Path] | None = None) -> tuple[Path, list[HtmlInlineFile], list[HtmlInlineFile]]:
+    def prepare(
+        self,
+        files: list[Path] | None = None,
+        source: Path | None = None,
+    ) -> tuple[Path, list[HtmlInlineFile], list[HtmlInlineFile]]:
         # Create file source path
-        source = self.create_path()
+        if not source:
+            source = self.create_path()
 
         # Collect and resolve styles
         self.resolve_styles()
@@ -80,7 +85,7 @@ class PageProcessor[TModel: Page](ContentProcessor[TModel], abc.ABC):
         while parent := parent.parent:
             path = Path(parent.model.name) / path
 
-        return (self.env.work_dir / path / self.model.name).with_suffix(".xhtml")
+        return self.env.work_dir / path / f"{self.model.name}.xhtml"
 
     def create_relative_paths(self, files: list[EpubFile], source: Path):
         result: list[HtmlInlineFile] = []

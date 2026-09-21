@@ -8,6 +8,7 @@ from markdown import Markdown
 from md2epub.core.environment import get_environment
 from md2epub.models.public.config import MarkdownConfig
 from md2epub.models.public.manifest import Manifest
+from md2epub.utils.utils import safe_join
 
 
 class ContentType(StrEnum):
@@ -65,7 +66,7 @@ class ContentCreator:
         # TODO: some postprocess with document
 
         # Pretty print to XHTML
-        return str(ehtml.tostring(document, pretty_print=True, encoding="utf-8", method="xml"))
+        return ehtml.tostring(document, pretty_print=True, encoding="unicode", method="xml")
 
     def create_from_path(self, input: Path, encoding: str = "utf-8") -> str:
         """
@@ -115,7 +116,7 @@ class ContentCreator:
         raise NotImplementedError(f"Cannot read URI {input.as_posix()}! Not implemented yet.")
 
     def _read_file(self, input: Path, encoding: str = "utf-8") -> tuple[str, ContentType]:
-        full_path = self.env.work_dir / input
+        full_path = safe_join(self.env.work_dir, input)
 
         # Check if path exists
         if not full_path.exists():

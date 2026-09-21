@@ -5,6 +5,8 @@ import zipfile
 from pathlib import Path
 from typing import Self
 
+from md2epub.utils.utils import safe_entry_name
+
 
 class Epub:
     """
@@ -54,9 +56,9 @@ class Epub:
             Self: The Epub instance for method chaining.
         """
 
-        filename = Path(filename)
+        name = safe_entry_name(filename)
         with zipfile.ZipFile(self._buffer, "a") as zip:
-            zip.writestr(filename.as_posix(), stream.getvalue())
+            zip.writestr(name, stream.getvalue())
 
         return self
 

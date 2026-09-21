@@ -7,9 +7,9 @@
         <dc:language>{{ manifest.language }}</dc:language>
         <dc:identifier id="{{ manifest.book_id.id }}" opf:scheme="{{ manifest.book_id.scheme }}">{{ manifest.book_id.value }}</dc:identifier>
         <dc:creator opf:file-as="{{ manifest.author.file_as }}" opf:role="aut">{{ manifest.author.name }}</dc:creator>
-        <dc:date opf:event="creation">{{ manifest.creation }}</dc:date>
-        <dc:date opf:event="publication">{{ manifest.publication }}</dc:date>
-        <dc:date opf:event="modification">{{ manifest.modification }}</dc:date>
+        <dc:date opf:event="creation">{{ manifest.created }}</dc:date>
+        <dc:date opf:event="publication">{{ manifest.published }}</dc:date>
+        <dc:date opf:event="modification">{{ manifest.modified }}</dc:date>
         <dc:format>{{ manifest.format }}</dc:format>
         {%- if manifest.rights %}<dc:rights>{{ "; ".join(manifest.rights) }}</dc:rights>{% endif %}
         {%- if manifest.publisher %}<dc:publisher>{{ manifest.publisher }}</dc:publisher>{% endif %}
@@ -17,7 +17,7 @@
         <dc:identifier opf:scheme="{{ identifier.scheme }}">{{ identifier.value }}</dc:identifier>
         {%- endfor -%}
         {% for contributor in manifest.contributors -%}
-        <dc:contributor opf:file-as="{{ contributor.file_as }}" opf:role="{{ contributor.role }}">{{ contributor.name }}</dc:publisher>
+        <dc:contributor opf:file-as="{{ contributor.file_as }}" opf:role="{{ contributor.role }}">{{ contributor.name }}</dc:contributor>
         {%- endfor -%}
         {% for subject in manifest.subjects -%}
         <dc:subject>{{ subject }}</dc:subject>
