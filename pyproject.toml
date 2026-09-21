@@ -23,7 +23,7 @@ dependencies = [
     "jinja2", 
     "pyyaml",
 ]
-requires-python = ">=3.9"
+requires-python = ">=3.12"
 
 [project.optional-dependencies]
 dev = ["black", "pylint", "pip-tools", "pytest"]

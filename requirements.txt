@@ -14,3 +14,5 @@ pytest
 PyYAML
 setuptools
 typing_extensions
+python-json-logger
+lxml

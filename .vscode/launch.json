@@ -12,11 +12,35 @@
             "cwd": "${workspaceFolder}",
             "module": "md2epub",
             "args": [
-                "-v",
                 "build",
-                "playground/input",
-                "playground/output/",
+                "-v",
+                "/app/examples/witcher/",
+                "examples",
                 "--overwrite"
+            ]
+        },
+        {
+            "name": "Md2ePub -- help",
+            "type": "debugpy",
+            "request": "launch",
+            "justMyCode": false,
+            "cwd": "${workspaceFolder}",
+            "module": "md2epub",
+            "args": [
+                "-v",
+                "--help"
+            ]
+        },
+        {
+            "name": "Md2ePub -- version",
+            "type": "debugpy",
+            "request": "launch",
+            "justMyCode": false,
+            "cwd": "${workspaceFolder}",
+            "module": "md2epub",
+            "args": [
+                "-v",
+                "--version"
             ]
         }
     ]

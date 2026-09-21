@@ -12,18 +12,17 @@
 
 # License: MIT (see LICENSE.md for details).
 
-from __future__ import annotations
+import os
+import sys
+from importlib.metadata import PackageNotFoundError, version
 
-from importlib import resources
+# Try to get version from package metadata, if not available, set to "0.0.0"
+try:
+    __version__ = version("md2epub")
+except PackageNotFoundError:
+    __version__ = "0.0.0"
 
-import tomllib
-from kachlog.utils import ChangelogUtils
-
-from md2epub.models.config import Config
-
-# Get current version from CHANGELOG.md
-__version__ = ChangelogUtils().get_current_version()
-
-# Load config file as resource
-_cfg = tomllib.loads(resources.read_text("md2epub.conf", "config.toml"))
-current_config = Config(**_cfg)
+# Get some constants
+__appname__ = "md2epub"
+__python_version__ = f"{sys.version_info.major}.{sys.version_info.minor}"
+__pgkdir__ = os.path.dirname(os.path.abspath(__file__))

@@ -2,16 +2,24 @@
 
 manifest_title = {
     "title": "The title of the publication",
-    "examples": ["First book", "Alice in Wonderland"],
+    "examples": ["Alice in Wonderland"],
     "description": (
         "An `<dc:title>` element. An OPF Package Document must include at least one"
         " instance of this element type, however multiple instances are permitted."
         "\n\nSee: https://idpf.org/epub/20/spec/OPF_2.0.1_draft.htm#Section2.2.1"
     ),
 }
+manifest_supertitle = {
+    "title": "The supertitle of the publication",
+    "examples": ["First book"],
+    "description": (
+        "The supertitle of the publication. This is not really in OPF document or"
+        " in specifications and maybe, this will be removed later."
+    ),
+}
 manifest_subtitle = {
     "title": "The subtitle of the publication",
-    "examples": ["First book"],
+    "examples": ["A tale of wonderland"],
     "description": (
         "The subtitle of the publication. This is not really in OPF document or"
         " in specifications and maybe, this will be removed later."
@@ -19,7 +27,7 @@ manifest_subtitle = {
 }
 manifest_language = {
     "title": "A language of the resource",
-    "examples": ["First book"],
+    "examples": ["en"],
     "description": (
         "Identifies a language of the intellectual content of the Publication."
         " An OPF Package Document must include at least one instance of this element"

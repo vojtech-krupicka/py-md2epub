@@ -1,85 +1,138 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, ClassVar, Type
+from collections import OrderedDict
+from pathlib import Path
+from typing import TYPE_CHECKING, Any, ClassVar
 
-import md2epub.utils.utils as Utils
-from md2epub.models.public.book import Book
-from md2epub.models.public.pages import PageType
-from md2epub.processors.page_processor import PageProcessor
-from md2epub.processors.processor import ContentProcessor
-from md2epub.utils.page_factory import PageFactory
+from pydantic import BaseModel
+
+from md2epub.core.content_collector import ContentCollector
+from md2epub.models.public.page import Book, Page, PageType, TocPage
+from md2epub.models.toc import Toc, TocItem
+from md2epub.processors.content_processor import ContentProcessor, HtmlInlineFile
+from md2epub.types.epub_content import HtmlFile
+from md2epub.utils.filters import toc_href_filter
 
 if TYPE_CHECKING:
-    from md2epub.builder import Builder
-
-logger = Utils.get_logger()
+    from md2epub.processors.page_processor import PageProcessor
 
 
-# region BookProcessor
+class PageItem(BaseModel):
+    source: Path
+    model: Page
+    html_file: HtmlFile
 
 
 class BookProcessor(ContentProcessor[Book]):
-    """ """
+    PAGE_PROCESSORS: ClassVar[dict[PageType, type[PageProcessor]]] = {}
 
-    page_processors: ClassVar[dict[str, Type]] = {}
+    def __init__(self, collector: ContentCollector, parent: BookProcessor | None, model: Book):
+        super().__init__(collector, parent, model)
 
-    # region Contructor
+        self.parent: BookProcessor | None = parent
+        self.level = parent.level + 1 if parent else 0
 
-    def __init__(self, builder: Builder, model: Book, parent: BookProcessor | None = None):
-        super().__init__(builder, model, parent)
+        self.toc = Toc()
+        self.pages: OrderedDict[PageType, list[PageItem]] = OrderedDict()
 
-        # self.model: Book = model
-        # self.parent: BookProcessor | None = parent
-        self.level: int = parent.level + 1 if parent else 0
+        self.resolve_metadata()
 
-        # self.toc: Toc = Toc()
-        # self.pages: OrderedDict[str, list[PageItem]] = OrderedDict()
+    @classmethod
+    def register_page_processor(cls, page_type: PageType, processor_cls: type[PageProcessor]):
+        from md2epub.processors.page_processor import PageProcessor
 
-        # self.resolve_metadata()
-
-    # region Page processors
-
-    @staticmethod
-    def register_page(
-        type: str | PageType, page_factory: Type | callable | None, processor_cls: Type
-    ):
-        # If page factory is not given (is None or False), skip factory registration.
-        if page_factory is not None:
-            # We will use original page type
-            PageFactory.register(type, page_factory)
-
-        # Check processor class
-        if not isinstance(processor_cls, Type) and issubclass(processor_cls, PageProcessor):
-            logger.warning(
-                f"`processor_cls` must inherit from PageProcessor class! '{processor_cls}' given."
-            )
-            return
-
-        # Type can be sting or type from PageType enum
-        type = type.value if isinstance(type, PageType) else str(type)
-
-        # If type is already registered, show warning
-        if type in BookProcessor.page_processors:
-            cls = BookProcessor.page_processors[type]
-            logger.warning(
-                f"Page processor for '{type}' page is already registered with '{cls.__name__}'!"
+        if not isinstance(processor_cls, type) and issubclass(processor_cls, PageProcessor):
+            raise TypeError(
+                f"Cannot register page processor for '{page_type}' to '{processor_cls}'! processor_cls must inherit from PageProcessor class."
             )
 
-        # Register processor
-        BookProcessor.page_processors[type] = processor_cls
+        cls.PAGE_PROCESSORS[page_type] = processor_cls
 
-    @staticmethod
-    def deregister(type: str | PageType):
-        # Type can be sting or type from PageType enum
-        type = type.value if isinstance(type, PageType) else str(type)
+    @property
+    def is_root(self) -> bool:
+        return self.parent is None
 
-        # If type is already registered, show warning
-        if type not in BookProcessor.page_processors:
-            logger.warning(f"Page processor for '{type}' page was never registered!")
+    def add_page(self, source: Path, model: Page, html_file: HtmlFile):
+        item = PageItem(source=source, model=model, html_file=html_file)
+        self.pages.setdefault(model.type, []).append(item)
+
+    def resolve_metadata(self):
+        if self.parent is None:
             return
 
-        return BookProcessor.page_processors.pop(type)
+        if not self.model.author:
+            self.model.author = self.parent.model.author
+        if not self.model.language:
+            self.model.language = self.parent.model.language
+        if not self.model.created:
+            self.model.created = self.parent.model.created
+        if not self.model.identifiers:
+            self.model.identifiers = self.parent.model.identifiers
+        if not self.model.subjects:
+            self.model.subjects = self.parent.model.subjects
+        if not self.model.description:
+            self.model.description = self.parent.model.description
+        if not self.model.publisher:
+            self.model.publisher = self.parent.model.publisher
+        if not self.model.contributors:
+            self.model.contributors = self.parent.model.contributors
+        if not self.model.rights:
+            self.model.rights = self.parent.model.rights
 
-    @staticmethod
-    def clear():
-        BookProcessor.page_processors.clear()
+    def run(self):
+        # First, get styles from parent
+        self.resolve_styles()
+
+        # Than collect all files
+        self.collect_files(list(self.model.files))
+
+        # Finally, process content
+        for page in self.model.pages:
+            cls = self.PAGE_PROCESSORS.get(page.type)
+            if not cls:
+                raise RuntimeError(f"Cannot process page '{page.type.value}'! Page processor not found.")
+
+            pp = cls(self.collector, self, page)
+            pp.run()
+
+        # Render TOC for current book
+        self.render_toc()
+
+        # If this book is not root, add its TOC to the parent
+        if self.parent is not None:
+            self.parent.add_toc_page(
+                {
+                    "level": self.level,
+                    "id": self.model.name,
+                    "name": self.model.title,
+                    "html": self.model.title,
+                    "children": self.toc.children,
+                }
+            )
+
+    def set_toc(self, file: HtmlFile, model: TocPage, stylesheets: list[HtmlInlineFile]):
+        if self.toc.is_set:
+            self.env.logger.warning(f"TOC for book '{self.model.title}' already set! Skipping...")
+            return
+
+        self.toc.is_set = True
+        self.toc.file = file
+        self.toc.page = model
+        self.toc.stylesheets = stylesheets
+
+    def add_toc_page(self, data: dict[str, Any]):
+        item = TocItem(**data)
+        self.toc.children.append(item)
+
+    def render_toc(self):
+        if not self.toc.file or not self.toc.page:
+            raise RuntimeError("Cannot render TOC for this Book, TOC has not been set yet!")
+
+        self.toc.file.content = self.render(
+            self.toc.page.template_path,
+            filters={"href": toc_href_filter},
+            book=self.model,
+            stylesheets=self.toc.stylesheets,
+            model=self.toc.page,
+            toc=self.toc,
+        )

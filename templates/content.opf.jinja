@@ -1,0 +1,50 @@
+<?xml version="1.0"?>
+<package version="2.0" xmlns="http://www.idpf.org/2007/opf" unique-identifier="{{ manifest.book_id.id }}">
+
+    <metadata xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:opf="http://www.idpf.org/2007/opf">
+        <meta name="md2epub" content="{{ manifest.version|default("0.0.1") }}" />
+        <dc:title>{{ manifest.title }}</dc:title>
+        <dc:language>{{ manifest.language }}</dc:language>
+        <dc:identifier id="{{ manifest.book_id.id }}" opf:scheme="{{ manifest.book_id.scheme }}">{{ manifest.book_id.value }}</dc:identifier>
+        <dc:creator opf:file-as="{{ manifest.author.file_as }}" opf:role="aut">{{ manifest.author.name }}</dc:creator>
+        <dc:date opf:event="creation">{{ manifest.creation }}</dc:date>
+        <dc:date opf:event="publication">{{ manifest.publication }}</dc:date>
+        <dc:date opf:event="modification">{{ manifest.modification }}</dc:date>
+        <dc:format>{{ manifest.format }}</dc:format>
+        {%- if manifest.rights %}<dc:rights>{{ "; ".join(manifest.rights) }}</dc:rights>{% endif %}
+        {%- if manifest.publisher %}<dc:publisher>{{ manifest.publisher }}</dc:publisher>{% endif %}
+        {% for identifier in manifest.identifiers -%}
+        <dc:identifier opf:scheme="{{ identifier.scheme }}">{{ identifier.value }}</dc:identifier>
+        {%- endfor -%}
+        {% for contributor in manifest.contributors -%}
+        <dc:contributor opf:file-as="{{ contributor.file_as }}" opf:role="{{ contributor.role }}">{{ contributor.name }}</dc:publisher>
+        {%- endfor -%}
+        {% for subject in manifest.subjects -%}
+        <dc:subject>{{ subject }}</dc:subject>
+        {%- endfor %}
+        <dc:description>{{ manifest.description }}</dc:description>
+        <meta name="calibre:title_sort" content="{{ manifest.calibre.title_sort or manifest.title }}" />
+        <meta name="calibre:series" content="{{ manifest.calibre.series }}" />
+        <meta name="calibre:series_index" content="{{ manifest.calibre.series_index }}" />
+        {#% if bookinfo.cover_page.render %}<meta name="cover" content="{{ bookinfo.cover_page.id }}" />{% endif %#}
+    </metadata>
+
+    <manifest>
+        {%- for file in opf.content %}
+        <item id="{{ file.unique_id }}" href="{{ file.href }}" media-type="{{ file.mimetype }}"/>
+        {%- endfor %}
+    </manifest>
+
+    <spine toc="{{ opf.ncx.unique_id }}">
+        {%- for item in opf.spine %}
+        <itemref idref="{{ item.file.unique_id }}"{% if item.auxiliary %} linear="no"{% endif %} />
+        {%- endfor %}
+    </spine>
+
+    <guide>
+        {%- for guide in opf.guide %}
+        <reference type="{{ guide.type.value }}" title="{{ guide.title }}" href="{{ guide.file.href }}" />
+        {%- endfor %}
+    </guide>
+
+</package>

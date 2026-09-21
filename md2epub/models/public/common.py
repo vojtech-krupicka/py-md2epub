@@ -1,91 +1,11 @@
 from __future__ import annotations
 
 import uuid
-from enum import StrEnum, auto
-from pathlib import Path
-from typing import Any, ClassVar
+from typing import Annotated, Any
 
-from pydantic import BaseModel, Field, computed_field, field_validator, model_validator
+from pydantic import BaseModel, Field, model_validator
 
-import md2epub.models.public.common_docs as docs
-
-# region Enums
-
-
-class PageType(StrEnum):
-    Cover = auto()
-    Title = auto()
-    Toc = auto()
-    Chapter = auto()
-    Book = auto()
-    Custom = auto()
-    _Unknown = auto()
-
-    @classmethod
-    def _missing_(cls, value):
-        return PageType._Unknown
-
-
-class OpfGuideType(StrEnum):
-    Cover = auto()
-    TitlePage = "title-page"
-    TOC = auto()
-    Index = auto()
-    LOI = auto()
-    LOT = auto()
-    Notes = auto()
-    Preface = auto()
-    Text = auto()
-
-
-# region Content base model
-
-
-class BookContent(BaseModel, validate_assignment=True):
-    name: str = ""
-
-    supertitle: str = ""
-    title: str = ""
-    subtitle: str = ""
-
-    stylesheets: set[Path] = []
-    stylesheets_overrides: set[Path] = []
-
-    @field_validator("supertitle", "title", "subtitle", mode="before")
-    @classmethod
-    def validate_titles(cls, val):
-        # If value set to none from yaml (empty), than change it to empty string
-        if val is None:
-            return ""
-
-        return val
-
-
-# region Page base model
-
-
-class Page(BookContent, validate_assignment=True):
-    TYPE: ClassVar[str]
-    DEFAULT_TEMPLATE: ClassVar[Path]
-
-    opf_spine_add: bool = False
-    opf_spine_aux: bool = False
-    opf_guide_type: OpfGuideType | None = None
-    opf_guide_title: str = ""
-    add_to_toc: bool = False
-
-    custom_template: Path | None = None
-
-    @computed_field
-    @property
-    def type(self) -> Path:
-        return self.TYPE
-
-    @computed_field
-    @property
-    def template_path(self) -> Path:
-        return self.custom_template if self.custom_template else self.DEFAULT_TEMPLATE
-
+from md2epub.models.public.docs import common as docs
 
 # region Metadata
 
@@ -100,8 +20,14 @@ class Identifier(BaseModel, validate_assignment=True):
     See: <https://idpf.org/epub/20/spec/OPF_2.0.1_draft.htm#Section2.2.10>
     """
 
-    scheme: str = Field("uuid", **docs.identifier_scheme)
+    scheme: Annotated[str, Field("uuid", **docs.identifier_scheme)] = "uuid"
+    """The scheme attribute names the system or authority that generated or assigned the text 
+    contained within the identifier element, for example `ISBN` or `DOI`. The values of the scheme 
+    attribute are case sensitive only when the particular scheme requires it."""
+
     value: str = Field(default_factory=lambda: str(uuid.uuid4()), **docs.identifier_value)
+    """The value of the identifier should be unique. It can be a UUID, ISBN, DOI, or any other 
+    unique string."""
 
 
 class BookId(Identifier, validate_assignment=True):
@@ -112,7 +38,8 @@ class BookId(Identifier, validate_assignment=True):
     See: <https://idpf.org/epub/20/spec/OPF_2.0.1_draft.htm#Section2.2.10>
     """
 
-    id: str = Field("BookId", **docs.bookid_id)
+    id: Annotated[str, Field("BookId", **docs.bookid_id)] = "BookId"
+    """The unique ID of the book."""
 
 
 class Contributor(BaseModel, validate_assignment=True):
@@ -122,18 +49,22 @@ class Contributor(BaseModel, validate_assignment=True):
     See: <https://idpf.org/epub/20/spec/OPF_2.0.1_draft.htm#Section2.2.6>
     """
 
-    role: str = Field("", **docs.contributor_role)
-    name: str = Field("Anonymous Entity", **docs.contributor_name)
-    file_as: str = Field("", **docs.contributor_file_as)
+    role: Annotated[str, Field(**docs.contributor_role)] = ""
+    """Role of the author, for example `aut` for author, `edt` for editor, `ill` for illustrator, etc."""
+
+    name: Annotated[str, Field(**docs.contributor_name)] = "Anonymous Entity"
+    """Contributor's full name."""
+
+    file_as: Annotated[str, Field(**docs.contributor_file_as)] = ""
+    """Normalized form of the contributor's name, for example `Surname, Name`."""
 
     @model_validator(mode="after")
     def on_after_model_validate(self):
-        # If not set file_as correctly (at all), set it as 'Surname, Name'
+        """If file_as is not set correctly (or at all), set it as 'Surname, Name'"""
         if not self.file_as:
             parts = [part for part in self.name.split(" ") if "." not in part]
-            self.file_as = (
-                f"{parts[-1]}, {" ".join(parts[:-1])}" if len(parts) > 1 else " ".join(parts)
-            )
+            self.file_as = f"{parts[-1]}, {' '.join(parts[:-1])}" if len(parts) > 1 else " ".join(parts)
+
         return self
 
 
@@ -148,7 +79,8 @@ class Author(Contributor, validate_assignment=True):
     See: <https://idpf.org/epub/20/spec/OPF_2.0.1_draft.htm#Section2.2.2>
     """
 
-    role: str = "aut"
+    role: Annotated[str, Field(**docs.contributor_role)] = "aut"
+    """Role of the author, here already set to `aut` for author, as this is the main author of the book."""
 
     @model_validator(mode="before")
     @classmethod
@@ -160,11 +92,17 @@ class Author(Contributor, validate_assignment=True):
 
 
 class CalibreMetadata(BaseModel, validate_assignment=True):
-    """
-    Calibre metadata for sorting and defining book series and book series index.
-    """
+    """Calibre metadata for sorting and defining book series and book series index."""
 
-    title_sort: str = Field("", **docs.calibre_title_sort)
-    series: str = Field("", **docs.calibre_series)
-    series_index: int = Field(1, **docs.calibre_series_index)
-    author_link_map: str = Field("", **docs.calibre_author_link_map)
+    title_sort: Annotated[str, Field(**docs.calibre_title_sort)] = ""
+    """The alphabeticaly correct sorting title, for example `The Story Of All of Us` 
+    would be sorted as `Story Of All Of Us, The`."""
+
+    series: Annotated[str, Field(**docs.calibre_series)] = ""
+    """The book series title."""
+
+    series_index: Annotated[int, Field(**docs.calibre_series_index)] = 1
+    """The index within the book series."""
+
+    author_link_map: Annotated[str, Field(**docs.calibre_author_link_map)] = ""
+    """The author name link map, for example `Author Name <https://author-website.com>`."""

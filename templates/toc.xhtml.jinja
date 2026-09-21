@@ -1,0 +1,24 @@
+{% extends "@layout.xhtml.jinja" %}
+
+{% block title %}{{ model.title }}{% endblock %}
+
+{% macro printTocItem(item, base_path) %}
+{%- if item.children %}
+<ul>
+    {% for child in item.children %}
+        <li>
+            <a href="{{ child|href(item.source, base_path.source.parent) }}" title="{{ child.name }}">{{ child.html }}</a>
+            {{ printTocItem(child, base_path) }}
+        </li>
+    {% endfor %}
+</ul>
+{% endif %}
+{% endmacro%}
+
+{% block content %}
+
+<h1>{{ model.title }}</h1>
+
+{{ printTocItem(toc, toc.file) }}
+
+{% endblock %}

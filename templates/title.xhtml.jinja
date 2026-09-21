@@ -1,0 +1,37 @@
+{% extends "@layout.xhtml.jinja" %}
+
+{% block title %}{% if book.author %}{{ book.author.name }}{{ book.title_separator }}{% endif %}{{ book.title }}{% if book.subtitle %}{{ book.title_separator }}{{ book.subtitle }}{% endif %} ({{ book.created }}){% endblock %}
+
+{% block content %}
+<div class="title">
+    {% for image in images -%}
+    <p><img height="100%" id="{{ image.unique_id }}" src="{{ image.href }}" alt="{{ image.href }}" /></p>
+    {%- endfor -%}
+
+    <div>{{ book.author.name }}</div>
+    <div>{{ book.title }}<br />{{ book.subtitle }}</div>
+    <div>{{ book.created }}</div>
+    <div>{{ book.publisher }}</div>
+    <div>{{ book.description }}</div>
+
+    {% if book.rights %}
+    <div>
+    {% for rights in book.rights -%}
+    <p>{{ rights }}</p>
+    {%- endfor -%}
+    </div>
+    {%- endif -%}
+
+    {% if book.identifiers %}
+    <div>
+    {% for identifier in book.identifiers -%}
+    <p><em>{{ identifier.value }}</em></p>
+    {%- endfor -%}
+    </div>
+    {%- endif -%}
+
+    {% if additional_content %}
+    {{ additional_content }}
+    {%- endif -%}
+</div>
+{% endblock %}

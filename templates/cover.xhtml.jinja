@@ -1,0 +1,9 @@
+{% extends "@layout.xhtml.jinja" %}
+
+{% block title %}{% if book.author %}{{ book.author.name }}{{ book.title_separator }}{% endif %}{{ book.title }}{% if book.subtitle %}{{ book.title_separator }}{{ book.subtitle }}{% endif %} ({{ book.created }}){% endblock %}
+
+{% block content %}
+<div class="cover">
+    <p><img height="100%" id="{{ cover_image.unique_id }}" src="{{ cover_image.href }}" alt="{{ cover_image.href }}" /></p>
+</div>
+{% endblock %}
