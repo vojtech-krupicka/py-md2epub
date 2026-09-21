@@ -19,7 +19,8 @@
       "dockerfile": "${localWorkspaceFolder}/Dockerfile"
   },
   "mounts": [
-    "source=${localWorkspaceFolder},target=/app,type=bind"
+    "source=${localWorkspaceFolder},target=/app,type=bind",
+    "source=${localWorkspaceFolder}/../py-md2epub-workdir,target=/app/workdir,type=bind"
   ],
   "remoteUser": "vscode",
   "workspaceFolder": "/app"

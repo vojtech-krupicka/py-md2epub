@@ -217,5 +217,5 @@ __marimo__/
 # Streamlit
 .streamlit/secrets.toml
 
-
-examples
+# Folder where we bind input data in container, it should never goes live
+workdir

@@ -8,12 +8,7 @@ ENV DEBIAN_FRONTEND=noninteractive \
     PYTHONUNBUFFERED=1
 
 # --------------------------------------------------------------------------
-# System packages: Python 3 + a LaTeX toolchain providing latexmk/pdflatex.
-#
-# texlive-latex-extra / texlive-fonts-extra pull in a lot; trim this list
-# down if you know exactly which LaTeX packages your template needs, or
-# switch to `texlive-full` if you'd rather not think about it (much larger
-# image).
+# System packages: Python 3
 # --------------------------------------------------------------------------
 RUN apt-get update && apt-get install -y --no-install-recommends \
         git \
