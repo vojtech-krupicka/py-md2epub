@@ -73,9 +73,6 @@ class TestBuild:
 
         assert result.exit_code == 2  # click usage error
 
-
-class TestKnownProblems:
-    # @pytest.mark.xfail(strict=True, reason="errors are logged and swallowed, the exit code is always 0")
     def test_failing_build_exits_with_an_error_code(self, log_cfg: Path, tmp_path: Path):
         (tmp_path / "empty").mkdir()
 
@@ -83,9 +80,6 @@ class TestKnownProblems:
 
         assert result.exit_code != 0
 
-    # @pytest.mark.xfail(
-    #     strict=True, reason="`-q` leaves `verbose` in the kwargs -> TypeError, swallowed at CRITICAL level"
-    # )
     def test_quiet_flag_still_builds(self, project: Project, log_cfg: Path, tmp_path: Path):
         out = tmp_path / "quiet.epub"
 
@@ -93,7 +87,6 @@ class TestKnownProblems:
 
         assert out.is_file()
 
-    # @pytest.mark.xfail(strict=True, reason="the output directory is not checked/created, so saving fails")
     def test_output_into_a_missing_directory(self, project: Project, log_cfg: Path, tmp_path: Path):
         out = tmp_path / "does" / "not" / "exist" / "cli.epub"
 

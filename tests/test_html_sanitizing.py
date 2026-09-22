@@ -19,8 +19,6 @@ from lxml import etree
 from md2epub.core.content_creator import ContentCreator, ContentType
 from md2epub.models.public.manifest import Manifest
 
-RAW_HTML_ALLOWED = pytest.mark.xfail(strict=True, reason="raw HTML from Markdown is passed through unchanged")
-
 BANNED_TAGS = {"script", "iframe", "object", "embed", "applet", "style", "link", "meta", "base", "form", "input", "svg"}
 URL_ATTRIBUTES = {"href", "src", "data", "action", "formaction", "poster", "background"}
 ACTIVE_SCHEMES = re.compile(r"\s*(javascript|vbscript|data):", re.IGNORECASE)
@@ -82,13 +80,11 @@ ACTIVE_CONTENT = {
 }
 
 
-# @RAW_HTML_ALLOWED
 @pytest.mark.parametrize("markdown", ACTIVE_CONTENT.values(), ids=ACTIVE_CONTENT.keys())
 def test_active_content_is_removed(creator: ContentCreator, markdown: str):
     assert problems(convert(creator, markdown)) == []
 
 
-# @RAW_HTML_ALLOWED
 def test_a_document_of_nothing_but_a_script_does_not_break_the_build(creator: ContentCreator):
     """Sanitizing can leave nothing at all, that must give an empty chapter and not an lxml error."""
     assert problems(convert(creator, "<script>alert(1)</script>")) == []

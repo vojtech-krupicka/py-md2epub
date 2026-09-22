@@ -4,10 +4,6 @@ Security regression tests.
 Every test describes what a *safe* build looks like: it either refuses a hostile input, or it builds
 without leaking anything. Refusing is always fine, see `build_or_refuse()`.
 
-Tests marked `xfail(strict=True)` reproduce problems that are known but not fixed yet. They are expected
-to fail today. Once a problem is fixed, pytest reports the test as XPASS(strict), which counts as a
-failure - that is the cue to delete the marker and keep the test as a regression guard.
-
 The exploits only ever touch files below pytest's `tmp_path`.
 """
 
@@ -26,8 +22,6 @@ from md2epub.models.public.manifest import Manifest
 from tests.conftest import Project
 from tests.helpers import build_or_refuse, leaks
 
-KNOWN = pytest.mark.xfail(strict=True)
-
 # region Paths from the manifest must stay inside the project
 
 
@@ -35,21 +29,21 @@ def _book(pages=(), **extra) -> dict:
     return {"pages": [{"type": "toc"}, *pages], **extra}
 
 
-# id -> (builds the `book` part of the manifest from a dict of references to the outside files, known bug?)
-ESCAPES: dict[str, tuple[Callable[[dict], dict], bool]] = {
-    "chapter-relative": (lambda r: _book([{"type": "chapter", "source": r["md_rel"]}]), False),
-    "chapter-absolute": (lambda r: _book([{"type": "chapter", "source": r["md_abs"]}]), False),
-    "cover-relative": (lambda r: _book([{"type": "cover", "cover_image": r["png_rel"]}]), False),
-    "cover-absolute": (lambda r: _book([{"type": "cover", "cover_image": r["png_abs"]}]), False),
-    "stylesheet-relative": (lambda r: _book(["text/ch1.md"], stylesheets=[r["css_rel"]]), False),
-    "stylesheet-absolute": (lambda r: _book(["text/ch1.md"], stylesheets=[r["css_abs"]]), False),
-    "files-parent-directory": (lambda r: _book(["text/ch1.md"], files=[".."]), False),
+# id -> (builds the `book` part of the manifest from a dict of references to the outside files)
+ESCAPES: dict[str, Callable[[dict], dict]] = {
+    "chapter-relative": lambda r: _book([{"type": "chapter", "source": r["md_rel"]}]),
+    "chapter-absolute": lambda r: _book([{"type": "chapter", "source": r["md_abs"]}]),
+    "cover-relative": lambda r: _book([{"type": "cover", "cover_image": r["png_rel"]}]),
+    "cover-absolute": lambda r: _book([{"type": "cover", "cover_image": r["png_abs"]}]),
+    "stylesheet-relative": lambda r: _book(["text/ch1.md"], stylesheets=[r["css_rel"]]),
+    "stylesheet-absolute": lambda r: _book(["text/ch1.md"], stylesheets=[r["css_abs"]]),
+    "files-parent-directory": lambda r: _book(["text/ch1.md"], files=[".."]),
 }
 
 
 @pytest.mark.parametrize(
     "case",
-    [pytest.param(name, marks=KNOWN if known else ()) for name, (_, known) in ESCAPES.items()],
+    [pytest.param(key) for key in ESCAPES],
 )
 def test_manifest_paths_cannot_escape_the_project(project: Project, outside: Path, case: str):
     refs = {
@@ -60,7 +54,7 @@ def test_manifest_paths_cannot_escape_the_project(project: Project, outside: Pat
         "png_abs": str(outside / "secret.png"),
         "css_abs": str(outside / "secret.css"),
     }
-    project.manifest(book=ESCAPES[case][0](refs))
+    project.manifest(book=ESCAPES[case](refs))
 
     epub = build_or_refuse(project)
 
@@ -162,7 +156,6 @@ def test_builtin_and_md2epub_extensions_load_without_any_flag(project: Project):
     assert epub is not None
 
 
-# @KNOWN
 def test_markdown_extension_is_allowed_with_explicit_trust(
     project: Project, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ):

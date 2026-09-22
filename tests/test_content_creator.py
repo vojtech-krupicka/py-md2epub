@@ -61,10 +61,6 @@ class TestCreateFromPath:
 
         assert "<h1>Title</h1>" in creator.create_from_path(Path("text/bom.md"))
 
-    # @pytest.mark.xfail(
-    #     strict=True,
-    #     reason='`str(lxml.tostring(...))` returns the repr of a bytes object ("b\'<div>...") instead of decoded text',
-    # )
     def test_result_is_xhtml_text_not_a_bytes_repr(self, creator: ContentCreator):
         html = creator.create_from_path(Path("text/ch1.md"))
 

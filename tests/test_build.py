@@ -92,18 +92,12 @@ class TestStructure:
         assert opf.xpath("//opf:guide/opf:reference/@type", namespaces=NS) == ["cover", "title-page", "toc"]
         assert opf.xpath("//opf:spine/@toc", namespaces=NS) == ["ncx"]
 
-    # @pytest.mark.xfail(
-    #     strict=True, reason="not implemented yet: `PageProcessor.toc` is never filled, so chapters never reach the TOC"
-    # )
     def test_toc_page_links_to_the_chapter(self, project: Project):
         epub = zipfile.ZipFile(project.build())
         toc = xml(epub, "OEBPS/content/toc.xhtml")
 
         assert any("ch1.xhtml" in href for href in toc.xpath("//x:a/@href", namespaces=NS))
 
-    # @pytest.mark.xfail(
-    #     strict=True, reason="not implemented yet: the NCX navMap is empty (the NCX spec requires >= 1 navPoint)"
-    # )
     def test_ncx_lists_the_chapter(self, project: Project):
         epub = zipfile.ZipFile(project.build())
         ncx = xml(epub, "OEBPS/toc.ncx")
@@ -128,11 +122,6 @@ class TestStructure:
         assert "OEBPS/content/part1/toc.xhtml" in names  # generated pages: <book>/<page name>.xhtml
         assert "OEBPS/text/ch1.xhtml" in names  # chapters keep the folder of their source
 
-    # @pytest.mark.xfail(
-    #     strict=True,
-    #     reason="a sub-book's own heading in the TOC/NCX is a container with no file of its own, "
-    #     "toc_href_filter has nothing to point it at and renders an empty href/src",
-    # )
     def test_sub_book_heading_is_not_a_dead_link(self, project: Project):
         """A sub-book's heading groups its children; it must still be a working link, not `href=""`."""
         project.manifest(
@@ -168,7 +157,6 @@ class TestStructure:
         # The heading itself, and its child chapter, must still be reachable as text somewhere on the page.
         assert "Part One" in " ".join(toc.xpath("//text()"))
 
-    # @pytest.mark.xfail(strict=True, reason="Page/Book has no `toc_title` field yet")
     def test_chapter_toc_title_overrides_the_heading(self, project: Project):
         """`toc_title` overrides the table-of-contents label only, not the chapter's own <title>."""
         project.write("text/ch1.md", "# Real Heading\n\nBody.\n")
@@ -190,7 +178,6 @@ class TestStructure:
         assert ncx.xpath("//ncx:navLabel/ncx:text/text()", namespaces=NS) == ["Custom Label"]
         assert chapter.xpath("string(//x:title)", namespaces=NS) == "Real Heading"
 
-    # @pytest.mark.xfail(strict=True, reason="Page/Book has no `toc_title` field yet")
     def test_page_toc_title_overrides_the_default_label(self, project: Project):
         """A page that has no heading of its own (a custom page) falls back to its `name`; `toc_title` overrides it."""
         template = project.write(
@@ -218,7 +205,6 @@ class TestStructure:
         assert "Bonus Material" in toc.xpath("//x:a/text()", namespaces=NS)
         assert "extras" not in " ".join(toc.xpath("//text()"))
 
-    # @pytest.mark.xfail(strict=True, reason="Page/Book has no `toc_title` field yet")
     def test_sub_book_toc_title_overrides_the_book_title(self, project: Project):
         """A sub-book's `toc_title` overrides its own heading in the parent's table of contents."""
         project.manifest(
@@ -269,9 +255,6 @@ class TestMetadata:
 
         assert ncx.xpath("//ncx:meta[@name='dtb:uid']/@content", namespaces=NS) == [uid]
 
-    # @pytest.mark.xfail(
-    #     strict=True, reason="book_id.value is a fresh random uuid4 on every load, not derived from the book"
-    # )
     def test_book_id_is_stable_across_rebuilds(self, project: Project):
         """Two builds of the same, unchanged project must produce the same book identifier."""
         first = xml(zipfile.ZipFile(project.build(project.out_dir / "a.epub")), "OEBPS/content.opf")
@@ -280,10 +263,6 @@ class TestMetadata:
         identifier = "string(//dc:identifier[@id])"
         assert first.xpath(identifier, namespaces=NS) == second.xpath(identifier, namespaces=NS)
 
-    # @pytest.mark.xfail(
-    #     strict=True,
-    #     reason="content.opf.jinja reads manifest.creation/publication/modification (fields are created/...)",
-    # )
     def test_dates_are_filled(self, epub: zipfile.ZipFile):
         opf = xml(epub, "OEBPS/content.opf")
         dates = opf.xpath("//dc:date/text()", namespaces=NS)
@@ -291,7 +270,6 @@ class TestMetadata:
         assert len(dates) == 3
         assert all(re.fullmatch(r"\d{4}(-\d{2}-\d{2})?", d) for d in dates)
 
-    # @pytest.mark.xfail(strict=True, reason="content.opf.jinja closes <dc:contributor> with </dc:publisher>")
     def test_contributors_produce_well_formed_xml(self, project: Project):
         project.manifest(contributors=[{"name": "Ed Itor", "role": "edt"}])
         epub = zipfile.ZipFile(project.build())
@@ -299,7 +277,6 @@ class TestMetadata:
         assert xml_errors(epub) == {}
         assert xml(epub, "OEBPS/content.opf").xpath("//dc:contributor/text()", namespaces=NS) == ["Ed Itor"]
 
-    # @pytest.mark.xfail(strict=True, reason="Jinja autoescape is off: `&` in metadata breaks OPF, NCX and title page")
     def test_ampersand_in_the_title_is_escaped(self, project: Project):
         project.manifest(title="Tom & Jerry", book=FULL_BOOK)
         epub = zipfile.ZipFile(project.build())
@@ -307,7 +284,6 @@ class TestMetadata:
         assert xml_errors(epub) == {}
         assert xml(epub, "OEBPS/content.opf").xpath("//dc:title/text()", namespaces=NS) == ["Tom & Jerry"]
 
-    # @pytest.mark.xfail(strict=True, reason="Jinja autoescape is off: metadata can inject extra XML elements")
     def test_metadata_cannot_inject_xml_elements(self, project: Project):
         project.manifest(title='X</dc:title><dc:creator opf:role="aut">FORGED</dc:creator><dc:title>')
         epub = zipfile.ZipFile(project.build())
@@ -329,10 +305,6 @@ class TestContent:
         assert chapter.xpath("//x:h1/text()", namespaces=NS) == ["Chapter One"]
         assert chapter.xpath("//x:em/text()", namespaces=NS) == ["world"]
 
-    # @pytest.mark.xfail(
-    #     strict=True,
-    #     reason="chapter body is the repr of a bytes object: stray b'...' and escaped non-ASCII text (\\xe2\\x80\\x9e)",
-    # )
     def test_chapter_text_is_clean(self, epub: zipfile.ZipFile):
         chapter = xml(epub, "OEBPS/text/ch1.xhtml")
         text = "".join(chapter.xpath("//x:body//text()", namespaces=NS)).strip()
@@ -368,9 +340,6 @@ class TestContent:
 
         assert page.xpath("//x:p/text()", namespaces=NS) == ["hi there"]
 
-    # @pytest.mark.xfail(
-    #     strict=True, reason="a relative custom `template` is resolved against the current directory, not the manifest"
-    # )
     def test_custom_template_path_is_relative_to_the_manifest(
         self, project: Project, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
     ):
@@ -382,9 +351,6 @@ class TestContent:
 
         assert "OEBPS/content/hello.xhtml" in zipfile.ZipFile(project.build()).namelist()
 
-    # @pytest.mark.xfail(
-    #     strict=True, reason="OPF item ids come from file names and can start with a digit (invalid XML ID)"
-    # )
     def test_opf_ids_are_valid_xml_ids(self, project: Project):
         project.write("text/01-intro.md", "# Intro\n")
         project.manifest(book={"pages": [{"type": "toc"}, "text/01-intro.md"]})
@@ -394,7 +360,6 @@ class TestContent:
         assert ids
         assert all(re.fullmatch(r"[A-Za-z_][\w.\-]*", i) for i in ids)
 
-    # @pytest.mark.xfail(strict=True, reason="hrefs in the OPF are not URL-encoded (spaces in file names)")
     def test_hrefs_are_url_encoded(self, project: Project):
         project.write("text/my chapter.md", "# Spaces\n")
         project.manifest(book={"pages": [{"type": "toc"}, "text/my chapter.md"]})

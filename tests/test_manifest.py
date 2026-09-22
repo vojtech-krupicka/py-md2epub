@@ -42,9 +42,6 @@ class TestMetadata:
         assert m.book_id.scheme == "uuid"
         assert uuid.UUID(m.book_id.value)
 
-    # @pytest.mark.xfail(
-    #     strict=True, reason="book_id.value is a fresh random uuid4 on every load, not derived from the book"
-    # )
     def test_book_id_is_stable_for_the_same_title_and_author(self):
         """Rebuilding the same, unchanged book must not hand it a new identity every time (readers key on it)."""
         manifest = MINIMAL + "author: Jane Doe\n"
@@ -71,9 +68,6 @@ class TestMetadata:
 
         assert m.book_id.value == "my-custom-id"
 
-    # @pytest.mark.xfail(
-    #     strict=True, reason="book_id.value is a fresh random uuid4 on every load, not derived from the book"
-    # )
     @pytest.mark.parametrize("blank", ["", "   "])
     def test_blank_explicit_book_id_value_is_treated_as_unset(self, blank: str):
         """`book_id: {value: ''}` (or all-whitespace) must not ship an empty <dc:identifier> - derive one instead."""
@@ -196,12 +190,10 @@ class TestPages:
         with pytest.raises(ValidationError, match="template"):
             load("title: T\nbook: {name: content, pages: [{type: custom, name: cp}]}")
 
-    # @pytest.mark.xfail(
-    #     strict=True,
-    #     reason="CustomPage has no default `name` (every other page type has one, the old model had 'custom')",
-    # )
-    # def test_custom_page_name_has_a_default(self):
-    #     load("title: T\nbook: {name: content, pages: [{type: custom, template: my.jinja}]}")
+    def test_custom_page_requires_a_name(self):
+        # custom page requires a `name`
+        with pytest.raises(ValidationError, match="book.pages.name"):
+            load("title: T\nbook: {name: content, pages: [{type: custom, template: my.jinja}]}")
 
     def test_custom_page(self):
         m = load(
@@ -238,12 +230,9 @@ class TestPages:
         assert page.book.name == "part1"
         assert isinstance(page.book.pages[0], Chapter)
 
-    # @pytest.mark.xfail(
-    #     strict=True,
-    #     reason="`book.name` has no default, so the README example (no `name`) fails - decide: default or fix README",
-    # )
-    # def test_book_name_is_optional(self):
-    #     load("title: T\nbook: {pages: [text/ch1.md]}")
+    def test_book_requires_a_name(self):
+        with pytest.raises(ValidationError, match="book.name"):
+            load("title: T\nbook: {pages: [text/ch1.md]}")
 
 
 # region Loading from files
@@ -278,10 +267,6 @@ class TestLoadFromFile:
         with pytest.raises(RuntimeError, match="invalid manifest format"):
             Manifest.load_from_file(path)
 
-    # @pytest.mark.xfail(
-    #     strict=True,
-    #     reason="`resolve_input` accepts `BOOK.YAML` (case-insensitive), `load_from_file` compares case-sensitively",
-    # )
     def test_uppercase_suffix(self, tmp_path: Path):
         path = tmp_path / "BOOK.YAML"
         path.write_text(dedent(MINIMAL), encoding="utf-8")

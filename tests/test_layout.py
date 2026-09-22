@@ -10,7 +10,6 @@ The rules these tests describe:
 - Two different files must never be written to the same place: that is an error, not a silent overwrite.
 - The same source file listed twice is written once.
 
-Tests marked `xfail(strict=True)` describe behaviour that is not implemented yet, see `test_security.py`.
 """
 
 from __future__ import annotations
@@ -23,12 +22,6 @@ import pytest
 
 from tests.conftest import Project
 from tests.helpers import NS, PNG_1X1, xml
-
-NO_COLLISION_CHECK = pytest.mark.xfail(
-    strict=True, reason="nothing checks that two files map to the same destination, the zip only warns"
-)
-# Today's zipfile only warns about a duplicate entry, which is noise in the expected-to-fail runs.
-DUPLICATE_WARNING = pytest.mark.filterwarnings("ignore:Duplicate name")
 
 PAGE = '<html xmlns="http://www.w3.org/1999/xhtml"><body><p>generated</p></body></html>'
 
@@ -56,7 +49,6 @@ def test_chapter_keeps_its_folder(project: Project, source: str, entry: str):
     assert entry in zipfile.ZipFile(project.build()).namelist()
 
 
-# @DUPLICATE_WARNING
 def test_chapters_with_the_same_file_name_in_different_folders_do_not_collide(project: Project):
     project.write("part1/intro.md", "# Intro of part 1\n")
     project.write("part2/intro.md", "# Intro of part 2\n")
@@ -110,8 +102,6 @@ def test_stylesheet_links_in_a_chapter_resolve_from_any_depth(project: Project, 
 # region Two different files, one destination
 
 
-# @NO_COLLISION_CHECK
-# @DUPLICATE_WARNING
 def test_two_pages_with_the_same_name_are_refused(project: Project):
     template = project.write("page.jinja", PAGE)
     project.manifest(
@@ -129,8 +119,6 @@ def test_two_pages_with_the_same_name_are_refused(project: Project):
         project.build()
 
 
-# @NO_COLLISION_CHECK
-# @DUPLICATE_WARNING
 def test_a_chapter_cannot_overwrite_a_generated_page(project: Project):
     """A source `content/toc.md` and the toc page (`content/toc.xhtml`) want the same destination."""
     project.write("content/toc.md", "# Not the table of contents\n")
@@ -159,8 +147,6 @@ SAME_SOURCE_TWICE = {
 }
 
 
-# @NO_COLLISION_CHECK
-# @DUPLICATE_WARNING
 @pytest.mark.parametrize("case", SAME_SOURCE_TWICE)
 def test_the_same_source_file_is_written_once(project: Project, case: str):
     project.manifest(book=SAME_SOURCE_TWICE[case])
