@@ -160,7 +160,13 @@ class TextFile(EpubFile):
     content: str = ""
 
     def add_to_epub(self, epub: Epub):
-        epub.add_text(self.content, self.dest)
+        # A plain file collected from disk (e.g. listed under `files:`) never has `content` set; a
+        # generated document (a page, the OPF, the NCX) always has it explicitly passed at construction,
+        # even when the rendered result happens to be an empty string.
+        if "content" in self.model_fields_set:
+            epub.add_text(self.content, self.dest)
+        else:
+            epub.add_file(self.source, self.dest)
 
 
 class HtmlFile(TextFile):

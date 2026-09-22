@@ -124,10 +124,10 @@ class TestEpubFile:
         assert NcxFile(content="").dest == Path("OEBPS/toc.ncx")
         assert NcxFile(content="").unique_id == "ncx"
 
-    @pytest.mark.xfail(
-        strict=True,
-        reason="`.txt`/`.xml` files become `TextFile`, whose `content` is never read from the source: copied empty",
-    )
+    # @pytest.mark.xfail(
+    #     strict=True,
+    #     reason="`.txt`/`.xml` files become `TextFile`, whose `content` is never read from the source: copied empty",
+    # )
     @pytest.mark.parametrize("name", ["notes.txt", "meta.xml"])
     def test_text_files_keep_their_content_when_copied(self, tmp_path: Path, name: str):
         (tmp_path / name).write_text("important\n", encoding="utf-8")
