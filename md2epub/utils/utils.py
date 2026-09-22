@@ -1,3 +1,4 @@
+import re
 from pathlib import Path, PurePosixPath, PureWindowsPath
 
 
@@ -27,3 +28,18 @@ def safe_entry_name(filename: str | Path) -> str:
         raise ValueError(f"Unsafe EPUB entry name {str(filename)!r}: must be a relative path inside the archive.")
 
     return path.as_posix()
+
+
+def xml_id(text: str) -> str:
+    """
+    Turn `text` into a valid XML `Name`, used as an `id`/`idref` in the OPF and NCX.
+
+    An XML Name must start with a letter or `_`. Everything outside `[A-Za-z0-9_.-]` is replaced with
+    `_`, and an `_` is prepended if the result would still start with something else - most commonly
+    a digit, e.g. a chapter file named `01-intro.md`.
+    """
+
+    safe = re.sub(r"[^A-Za-z0-9_.-]", "_", text) or "_"
+    if not re.match(r"[A-Za-z_]", safe):
+        safe = f"_{safe}"
+    return safe

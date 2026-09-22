@@ -8,6 +8,7 @@ from urllib.parse import quote
 from pydantic import BaseModel, Field, computed_field, model_validator
 
 from md2epub.core.environment import get_environment
+from md2epub.utils.utils import xml_id
 
 if TYPE_CHECKING:
     from md2epub.types.epub import Epub
@@ -72,7 +73,7 @@ class EpubFile(BaseModel):
     @property
     def unique_id(self) -> str:
         """Generates unique ID for this file"""
-        parts = [self.source.stem, f"{self.file_num:02}", self.uid.hex[:5]]
+        parts = [xml_id(self.source.stem), f"{self.file_num:02}", self.uid.hex[:5]]
         return "_".join(map(str, parts))
 
     @computed_field
