@@ -219,3 +219,4 @@ __marimo__/
 
 # Folder where we bind input data in container, it should never goes live
 workdir
+uv.lock

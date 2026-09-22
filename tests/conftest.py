@@ -65,10 +65,10 @@ class Project:
         self.manifest_path.write_text(yaml.safe_dump(data, allow_unicode=True), encoding="utf-8")
         return self.manifest_path
 
-    def build(self, output: Path | None = None, *, overwrite: bool = True) -> Path:
-        """Run the real build command and return the path of the EPUB."""
+    def build(self, output: Path | None = None, *, overwrite: bool = True, **kwargs) -> Path:
+        """Run the real build command and return the path of the EPUB. `kwargs` forward to `build.run`."""
         output = output or self.out_dir / "book.epub"
-        build.run(self.manifest_path, output, overwrite)
+        build.run(self.manifest_path, output, overwrite, **kwargs)
         return output
 
 

@@ -1,7 +1,8 @@
 from collections.abc import Callable
 from pathlib import Path
 
-from jinja2 import BaseLoader, Environment, FileSystemLoader
+from jinja2 import BaseLoader, FileSystemLoader
+from jinja2.sandbox import SandboxedEnvironment
 
 
 class Templator:
@@ -18,21 +19,21 @@ class Templator:
     def register_filters(self, filters: dict[str, Callable]):
         self.filters.update(filters)
 
-    def create_environment(self, loader: BaseLoader | None = None) -> Environment:
+    def create_environment(self, loader: BaseLoader | None = None) -> SandboxedEnvironment:
         """
         Create the Jinja environment for every template we render.
 
         All output is XML/XHTML, so every value is escaped by default (`&` -> `&amp;`, `<` -> `&lt;`). A value which is
         already markup has to be marked in the template, e.g. `{{ content|safe }}`.
         """
-        return Environment(loader=loader, autoescape=True)
+        return SandboxedEnvironment(loader=loader, autoescape=True)
 
     def render(self, **kwargs):
         raise NotImplementedError(
             "Render method is not implemented in base class, please, instantiate children classes."
         )
 
-    def _do_render(self, env: Environment, template: str, **values):
+    def _do_render(self, env: SandboxedEnvironment, template: str, **values):
         # Prepare filters
         env.filters.update(self.filters)
 

@@ -149,6 +149,48 @@ def test_markdown_extension_cannot_import_arbitrary_modules(
     assert not marker.exists()
 
 
+def test_builtin_and_md2epub_extensions_load_without_any_flag(project: Project):
+    """Control test: the allowlist must not get in the way of what a manifest is actually meant to use."""
+    project.write("text/ch1.md", "Šel k lesu.")  # exercises the `vlna` extension (a non-breaking space after `k`)
+    project.manifest(
+        config={"markdown": {"additional_extensions": ["toc", "md2epub.extensions.vlna"]}},
+        book=_book(["text/ch1.md"]),
+    )
+
+    epub = build_or_refuse(project)
+
+    assert epub is not None
+
+
+@KNOWN
+def test_markdown_extension_is_allowed_with_explicit_trust(
+    project: Project, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+):
+    """The opt-in is a decision made by whoever runs the build, not something the manifest can grant itself."""
+    marker = tmp_path / "extension_ran"
+    name = "md2epub_test_harmless_extension"
+    project.write(
+        f"{name}.py",
+        "import pathlib\n"
+        f"pathlib.Path({str(marker)!r}).write_text('ran')\n"
+        "from markdown import Extension\n"
+        "class E(Extension):\n"
+        "    def extendMarkdown(self, md):\n"
+        "        pass\n"
+        "def makeExtension(**kwargs):\n"
+        "    return E(**kwargs)\n",
+    )
+    monkeypatch.syspath_prepend(str(project.root))
+    project.manifest(config={"markdown": {"additional_extensions": [name]}})
+
+    try:
+        project.build(trust_extensions=True)
+    finally:
+        sys.modules.pop(name, None)
+
+    assert marker.exists()
+
+
 # region The manifest must not control where the output goes
 
 
