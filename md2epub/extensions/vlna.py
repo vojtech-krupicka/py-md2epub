@@ -1,27 +1,26 @@
 from __future__ import annotations
 
 import re
-from typing import Any
 import xml.etree.ElementTree as etree
 
-from markdown import Markdown, Extension
+from markdown import Extension
 from markdown.treeprocessors import Treeprocessor
 
+
 class VlnaTreeprocessor(Treeprocessor):
-    
     def __init__(self, prefixes: str, char: str):
         self.prefixes = prefixes
         self.char = char
 
         # https://regex101.com/r/M9eVqS/1
-        self.RE_INLINE = re.compile(r"\b([%s])[ ]+(?=\w)" % self.prefixes, re.MULTILINE)
+        self.RE_INLINE = re.compile(rf"\b([{self.prefixes}])[ ]+(?=\w)", re.MULTILINE)
 
         # https://regex101.com/r/w86443/4
-        self.RE_ENDLINE = re.compile(r"\b([%s])[ ]*\n[ ]*" % self.prefixes, re.MULTILINE)
+        self.RE_ENDLINE = re.compile(rf"\b([{self.prefixes}])[ ]*\n[ ]*", re.MULTILINE)
 
     def run(self, root: etree.Element) -> None:
         self.finder(root)
-    
+
     def finder(self, root: etree.Element) -> None:
         for child in root:
             if child.text:
@@ -37,34 +36,30 @@ class VlnaTreeprocessor(Treeprocessor):
         endLineChanges = self.RE_ENDLINE.sub(subst, inlineChanges, 0)
         return endLineChanges
 
+
 class VlnaExtension(Extension):
     """
     Vlna is used to replace spaces between words with non-breaking spaces in Czech language texts.
     https://github.com/JakubAndrysek/vlna/blob/main/vlna.py
     """
-        
+
     def __init__(self, **kwargs):
         self.config = {
-            "char": [
-                "&nbsp;", 
-                "Character to replace with."
-            ],
-            "prefixes": [
-                "AaIiKkSsVvUuOoZz0123456789",
-                "Prefixes between words."
-            ]
+            "char": ["&nbsp;", "Character to replace with."],
+            "prefixes": ["AaIiKkSsVvUuOoZz0123456789", "Prefixes between words."],
         }
 
         """ Default configuration options. """
         super().__init__(**kwargs)
 
     def extendMarkdown(self, md):
-        """ 
+        """
         Add `VlnaExtension` to the Markdown instance.
         """
         md.registerExtension(self)
 
-        md.treeprocessors.register(VlnaTreeprocessor(self.getConfig("prefixes"), self.getConfig("char")), 'vlna', -1000)
+        md.treeprocessors.register(VlnaTreeprocessor(self.getConfig("prefixes"), self.getConfig("char")), "vlna", -1000)
+
 
 def makeExtension(**kwargs):
     return VlnaExtension(**kwargs)
