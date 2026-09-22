@@ -17,3 +17,4 @@ typing_extensions
 python-json-logger
 lxml
 nh3
+lxml-stubs
