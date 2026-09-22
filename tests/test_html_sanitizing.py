@@ -47,10 +47,10 @@ def problems(xhtml: str) -> list[str]:
         if tag in BANNED_TAGS:
             found.append(f"<{tag}> element")
         for name, value in el.attrib.items():
-            name = name.lower()
+            name = str(name.lower())
             if name.startswith("on"):
                 found.append(f"<{tag} {name}=...> event handler")
-            if name in URL_ATTRIBUTES and ACTIVE_SCHEMES.match(value):
+            if name in URL_ATTRIBUTES and ACTIVE_SCHEMES.match(str(value)):
                 found.append(f"<{tag} {name}={value!r}> script URL")
             if tag == "img" and name == "src" and (urlsplit(value).scheme or urlsplit(value).netloc):
                 found.append(f"<img src={value!r}> remote image")
@@ -121,7 +121,7 @@ def test_harmless_markup_survives(creator: ContentCreator, markdown: str, expect
 
 
 def test_text_and_typography_survive(creator: ContentCreator):
-    text = "".join(tree(convert(creator, 'Salt & pepper, 5 < 6, "quoted", k lesu.')).itertext())
+    text = "".join(map(str, tree(convert(creator, 'Salt & pepper, 5 < 6, "quoted", k lesu.')).itertext()))
 
     assert "Salt & pepper, 5 < 6" in text
     assert (
