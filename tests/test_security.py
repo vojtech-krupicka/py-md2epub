@@ -39,11 +39,11 @@ def _book(pages=(), **extra) -> dict:
 ESCAPES: dict[str, tuple[Callable[[dict], dict], bool]] = {
     "chapter-relative": (lambda r: _book([{"type": "chapter", "source": r["md_rel"]}]), False),
     "chapter-absolute": (lambda r: _book([{"type": "chapter", "source": r["md_abs"]}]), False),
-    "cover-relative": (lambda r: _book([{"type": "cover", "cover_image": r["png_rel"]}]), True),
+    "cover-relative": (lambda r: _book([{"type": "cover", "cover_image": r["png_rel"]}]), False),
     "cover-absolute": (lambda r: _book([{"type": "cover", "cover_image": r["png_abs"]}]), False),
-    "stylesheet-relative": (lambda r: _book(["text/ch1.md"], stylesheets=[r["css_rel"]]), True),
+    "stylesheet-relative": (lambda r: _book(["text/ch1.md"], stylesheets=[r["css_rel"]]), False),
     "stylesheet-absolute": (lambda r: _book(["text/ch1.md"], stylesheets=[r["css_abs"]]), False),
-    "files-parent-directory": (lambda r: _book(["text/ch1.md"], files=[".."]), True),
+    "files-parent-directory": (lambda r: _book(["text/ch1.md"], files=[".."]), False),
 }
 
 
@@ -238,9 +238,6 @@ def test_page_name_is_the_file_name_and_stays_inside_the_book_folder(project: Pr
     assert leaks(epub) == []
 
 
-@pytest.mark.xfail(
-    strict=True, reason="`with_suffix('.xhtml')` treats `.01` as an extension: 'part.01' -> 'part.xhtml'"
-)
 def test_dots_in_a_page_name_are_kept_in_the_file_name(project: Project):
     project.manifest(book=_toc_named("part.01"))
 

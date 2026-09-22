@@ -8,6 +8,7 @@ from markdown import Markdown
 from md2epub.core.environment import get_environment
 from md2epub.models.public.config import MarkdownConfig
 from md2epub.models.public.manifest import Manifest
+from md2epub.utils.sanitize import sanitize_html
 from md2epub.utils.utils import safe_join
 
 
@@ -55,6 +56,9 @@ class ContentCreator:
         match content_type:
             case ContentType.Markdown:
                 html = self.from_markdown(text)
+                html = sanitize_html(html)
+                if not html.strip():
+                    return ""
             case _:
                 raise RuntimeError(
                     f"Cannot create content for '{content_type.value}', create hook function is not bind!"
@@ -66,7 +70,8 @@ class ContentCreator:
         # TODO: some postprocess with document
 
         # Pretty print to XHTML
-        return ehtml.tostring(document, pretty_print=True, encoding="unicode", method="xml")
+        result = ehtml.tostring(document, pretty_print=True, encoding="utf-8", method="xml")
+        return result.decode("utf-8") if isinstance(result, bytes) else result
 
     def create_from_path(self, input: Path, encoding: str = "utf-8") -> str:
         """

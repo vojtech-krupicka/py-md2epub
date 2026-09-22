@@ -1,7 +1,7 @@
 from collections.abc import Callable
 from pathlib import Path
 
-from jinja2 import Environment, FileSystemLoader
+from jinja2 import BaseLoader, Environment, FileSystemLoader
 
 
 class Templator:
@@ -17,6 +17,15 @@ class Templator:
 
     def register_filters(self, filters: dict[str, Callable]):
         self.filters.update(filters)
+
+    def create_environment(self, loader: BaseLoader | None = None) -> Environment:
+        """
+        Create the Jinja environment for every template we render.
+
+        All output is XML/XHTML, so every value is escaped by default (`&` -> `&amp;`, `<` -> `&lt;`). A value which is
+        already markup has to be marked in the template, e.g. `{{ content|safe }}`.
+        """
+        return Environment(loader=loader, autoescape=True)
 
     def render(self, **kwargs):
         raise NotImplementedError(
@@ -44,7 +53,7 @@ class StringTemplator(Templator):
         self.tpl_string = text
 
     def render(self, **values):
-        env = Environment()
+        env = self.create_environment()
         return self._do_render(env, self.tpl_string, **values)
 
 
@@ -65,5 +74,5 @@ class FileTemplator(Templator):
         self.search_path = search_path
 
     def render(self, **values):
-        env = Environment(loader=FileSystemLoader(searchpath=self.search_path))
+        env = self.create_environment(loader=FileSystemLoader(searchpath=self.search_path))
         return self._do_render(env, self.tpl_file.as_posix(), **values)

@@ -124,6 +124,10 @@ def write(collector: ContentCollector, output: Path):
     # Copy all files collected in OPF manifest
     collector.copy_to_epub(epub)
 
+    # If output's parent directory does not exist, create the whole path.
+    # TODO: Consider creating the whole path on opt-in flag.
+    output.parent.mkdir(parents=True, exist_ok=True)
+
     # Save output
     epub.save(output)
 
@@ -184,11 +188,6 @@ def resolve_output(
         output = output.with_suffix(epub_suffix)
     elif output.suffix.lower() != epub_suffix:
         raise ValueError(f"Invalid output file '{output.name}': suffix must be '{epub_suffix}'.")
-
-    # If output's parent directory does not exist, raise an error.
-    # TODO: Consider creating the whole path if it does not exist.
-    # if not output.parent.is_dir():
-    #    raise FileNotFoundError(f"Output directory '{output.parent}' does not exist.")
 
     # If output exists and overwrite is False, raise an error.
     if output.exists() and not overwrite:

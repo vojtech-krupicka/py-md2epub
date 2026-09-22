@@ -3,6 +3,7 @@ from __future__ import annotations
 import uuid
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, ClassVar, Literal
+from urllib.parse import quote
 
 from pydantic import BaseModel, Field, computed_field, model_validator
 
@@ -85,7 +86,7 @@ class EpubFile(BaseModel):
     @property
     def href(self) -> str:
         """Hack for display in <A> href attribute."""
-        return self.dest.relative_to(self.OEBPS).as_posix()
+        return quote(self.dest.relative_to(self.OEBPS).as_posix())
 
     @computed_field
     @property

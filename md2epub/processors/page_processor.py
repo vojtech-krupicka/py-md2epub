@@ -1,5 +1,6 @@
 import abc
 from pathlib import Path
+from urllib.parse import quote
 
 from md2epub.core.content_collector import ContentCollector
 from md2epub.core.content_creator import ContentCreator
@@ -93,7 +94,7 @@ class PageProcessor[TModel: Page](ContentProcessor[TModel], abc.ABC):
             result.append(
                 HtmlInlineFile(
                     uid=file.unique_id,
-                    href=file.source.relative_to(source.parent, walk_up=True).as_posix(),
+                    href=quote(file.source.relative_to(source.parent, walk_up=True).as_posix()),
                     mimetype=file.mimetype,
                 )
             )

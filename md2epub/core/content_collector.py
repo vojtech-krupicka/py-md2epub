@@ -8,7 +8,7 @@ from md2epub.core.environment import get_environment
 from md2epub.models.public.manifest import Manifest
 from md2epub.models.public.page import OpfGuideType
 from md2epub.types.epub import Epub
-from md2epub.types.epub_content import EpubFile, NcxFile, OpfFile
+from md2epub.types.epub_content import EpubFile, HtmlFile, NcxFile, OpfFile, SpecialFile
 
 
 class GuideItem(BaseModel):
@@ -91,13 +91,19 @@ class ContentCollector:
 
         return True
 
-    def add_file(self, file: EpubFile) -> bool:
-        if str(file.dest) in self._content:
-            self.env.logger.warning(f"File '{file.source}' alredy collected with id '{file.unique_id}'!")
-            return False
+    def add_file(self, file: EpubFile) -> EpubFile:
+        key = file.dest.as_posix()
+        other = self._content.get(key)
+        if other is None:
+            self._content[key] = file
+            return file
 
-        self._content[str(file.dest)] = file
-        return True
+        # Generated files (pages, opf, ncx) come from memory, only plain copies of one source file are the "same"
+        generated = isinstance(file, (HtmlFile, SpecialFile)) or isinstance(other, (HtmlFile, SpecialFile))
+        if generated or other.source != file.source:
+            raise ValueError(f"'{file.source}' and '{other.source}' would both be written to '{key}'.")
+
+        return other  # the same source file listed twice: the first one wins
 
     def add_spine(self, file: EpubFile, aux: bool = False) -> bool:
         if file.unique_id in self._spine:

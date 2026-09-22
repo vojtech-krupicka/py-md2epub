@@ -16,6 +16,7 @@ class Epub:
     def __init__(self):
         """Initialize an empty EPUB file with an in-memory buffer."""
         self._buffer: io.BytesIO = io.BytesIO()
+        self._names: set[str] = set()
 
     def add_text(self, content: str, filename: str | Path) -> Self:
         """Add a text file to the EPUB.
@@ -57,6 +58,10 @@ class Epub:
         """
 
         name = safe_entry_name(filename)
+        if name in self._names:
+            raise ValueError(f"Duplicate EPUB entry '{name}': two files would be written to the same place.")
+
+        self._names.add(name)
         with zipfile.ZipFile(self._buffer, "a") as zip:
             zip.writestr(name, stream.getvalue())
 

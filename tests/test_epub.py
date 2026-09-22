@@ -54,10 +54,10 @@ class TestEpubWriter:
         with pytest.raises((ValueError, RuntimeError)):
             Epub().add_text("x", name)
 
-    @pytest.mark.filterwarnings("ignore:Duplicate name")
-    @pytest.mark.xfail(
-        strict=True, reason="`Epub.add` appends a second entry with the same name, `zipfile` only warns about it"
-    )
+    # @pytest.mark.filterwarnings("ignore:Duplicate name")
+    # @pytest.mark.xfail(
+    #     strict=True, reason="`Epub.add` appends a second entry with the same name, `zipfile` only warns about it"
+    # )
     def test_duplicate_entry_names_are_rejected(self):
         epub = Epub()
         epub.add_text("first", "OEBPS/page.xhtml")

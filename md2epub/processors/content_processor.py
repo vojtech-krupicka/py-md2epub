@@ -64,7 +64,6 @@ class ContentProcessor[TModel: BookContent](Processor, abc.ABC):
                 result += self.collect_files(folder_content)
             else:
                 file = EpubFile.create_from_source(full_path)
-                self.collector.add_file(file)
-                result.append(file)
+                result.append(self.collector.add_file(file))
 
         return result

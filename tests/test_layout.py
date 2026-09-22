@@ -56,7 +56,7 @@ def test_chapter_keeps_its_folder(project: Project, source: str, entry: str):
     assert entry in zipfile.ZipFile(project.build()).namelist()
 
 
-@DUPLICATE_WARNING
+# @DUPLICATE_WARNING
 def test_chapters_with_the_same_file_name_in_different_folders_do_not_collide(project: Project):
     project.write("part1/intro.md", "# Intro of part 1\n")
     project.write("part2/intro.md", "# Intro of part 2\n")
@@ -95,20 +95,7 @@ def test_relative_links_in_a_chapter_still_resolve(project: Project):
     assert posixpath.normpath(posixpath.join(posixpath.dirname(chapter), src)) in epub.namelist()
 
 
-WRONG_DEPTH = pytest.mark.xfail(
-    strict=True, reason="`prepare()` builds stylesheet hrefs against the old `content/` folder, not the chapter's own"
-)
-
-
-@pytest.mark.parametrize(
-    "source",
-    [
-        pytest.param("top.md", marks=WRONG_DEPTH),
-        "text/one.md",  # same depth as the old `content/` folder, so it happens to be right
-        pytest.param("text/sub/deep.md", marks=WRONG_DEPTH),
-        pytest.param("a/b/c/d.md", marks=WRONG_DEPTH),
-    ],
-)
+@pytest.mark.parametrize("source", ["top.md", "text/one.md", "text/sub/deep.md", "a/b/c/d.md"])
 def test_stylesheet_links_in_a_chapter_resolve_from_any_depth(project: Project, source: str):
     project.write(source, "# Title\n")
     project.manifest(book={"stylesheets": ["styles/s.css"], "pages": [{"type": "toc"}, source]})
@@ -123,8 +110,8 @@ def test_stylesheet_links_in_a_chapter_resolve_from_any_depth(project: Project, 
 # region Two different files, one destination
 
 
-@NO_COLLISION_CHECK
-@DUPLICATE_WARNING
+# @NO_COLLISION_CHECK
+# @DUPLICATE_WARNING
 def test_two_pages_with_the_same_name_are_refused(project: Project):
     template = project.write("page.jinja", PAGE)
     project.manifest(
@@ -142,8 +129,8 @@ def test_two_pages_with_the_same_name_are_refused(project: Project):
         project.build()
 
 
-@NO_COLLISION_CHECK
-@DUPLICATE_WARNING
+# @NO_COLLISION_CHECK
+# @DUPLICATE_WARNING
 def test_a_chapter_cannot_overwrite_a_generated_page(project: Project):
     """A source `content/toc.md` and the toc page (`content/toc.xhtml`) want the same destination."""
     project.write("content/toc.md", "# Not the table of contents\n")
@@ -172,8 +159,8 @@ SAME_SOURCE_TWICE = {
 }
 
 
-@NO_COLLISION_CHECK
-@DUPLICATE_WARNING
+# @NO_COLLISION_CHECK
+# @DUPLICATE_WARNING
 @pytest.mark.parametrize("case", SAME_SOURCE_TWICE)
 def test_the_same_source_file_is_written_once(project: Project, case: str):
     project.manifest(book=SAME_SOURCE_TWICE[case])

@@ -16,3 +16,4 @@ setuptools
 typing_extensions
 python-json-logger
 lxml
+nh3
