@@ -12,6 +12,8 @@ class Environment:
         self.version = version
         self.package = "md2epub"
 
+        self.trust_extensions: bool = False
+
         self.static_dir = (Path(__file__).parent / ".." / ".." / "static").resolve()
         self.template_dir = (Path(__file__).parent / ".." / ".." / "templates").resolve()
         self.set_work_dir(work_dir)
@@ -19,6 +21,11 @@ class Environment:
     def set_work_dir(self, work_dir: str | Path | None) -> Environment:
         """Set the working directory for the environment."""
         self.work_dir = (Path(work_dir).resolve() if work_dir is not None else Path().cwd()).expanduser()
+        return self
+
+    def set_trust_extensions(self, trust_extensions: bool) -> Environment:
+        """Trust any Markdown extension named in the manifest, not only the built-in and md2epub ones."""
+        self.trust_extensions = trust_extensions
         return self
 
     # region Setup

@@ -138,6 +138,14 @@ overwrite_option = click.option(
     help="Overwrite existing EPUB_FILE",
 )
 
+trust_extensions_option = click.option(
+    "--trust-extensions",
+    is_flag=True,
+    default=False,
+    envvar="MD2EPUB_TRUST_EXTENSIONS",
+    help="Allow any Markdown extension named in the manifest, not only the built-in and md2epub ones.",
+)
+
 input_manifest_argument = click.argument(
     "input-manifest",
     type=click.Path(exists=True, resolve_path=True, path_type=Path),
@@ -163,6 +171,7 @@ output_epub_argument = click.argument(
 @input_manifest_argument
 @output_epub_argument
 @overwrite_option
+@trust_extensions_option
 @catch_exception(handle=(Exception))
 @md2epub_command()
 def build_command(

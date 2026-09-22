@@ -8,6 +8,7 @@ from markdown import Markdown
 from md2epub.core.environment import get_environment
 from md2epub.models.public.config import MarkdownConfig
 from md2epub.models.public.manifest import Manifest
+from md2epub.utils.markdown_extensions import assert_trusted_extensions
 from md2epub.utils.sanitize import sanitize_html
 from md2epub.utils.utils import safe_join
 
@@ -102,6 +103,9 @@ class ContentCreator:
 
         # Join both configs and return
         config.update(manifest_config)
+
+        # A manifest is untrusted input: it may only pick Markdown/md2epub extensions unless the build opted in
+        assert_trusted_extensions(config["extensions"], trust_all=self.env.trust_extensions)
 
         # Create and return markdown instance
         return Markdown(**config)

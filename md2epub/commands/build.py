@@ -29,6 +29,7 @@ def run(
     input_path: Path | None = None,
     output_path: Path | None = None,
     overwrite: bool = False,
+    trust_extensions: bool = False,
 ) -> bool:
     """
     Run the build command.
@@ -41,8 +42,9 @@ def run(
     # Resolve input path for manifest and try to instantiate it from a model
     manifest_path = resolve_input(input_path)
 
-    # Set work_dir for build command
+    # Set work_dir and trust_extensions for build command
     env.set_work_dir(manifest_path.parent)
+    env.set_trust_extensions(trust_extensions)
 
     # Create manifest
     manifest = Manifest.load_from_file(manifest_path)

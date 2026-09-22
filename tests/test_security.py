@@ -162,7 +162,7 @@ def test_builtin_and_md2epub_extensions_load_without_any_flag(project: Project):
     assert epub is not None
 
 
-@KNOWN
+# @KNOWN
 def test_markdown_extension_is_allowed_with_explicit_trust(
     project: Project, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ):
