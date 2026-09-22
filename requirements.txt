@@ -3,7 +3,6 @@ click>=8.5
 colorama
 iniconfig
 Jinja2
-kachlog
 Markdown
 MarkupSafe
 packaging
@@ -14,7 +13,6 @@ pytest
 PyYAML
 setuptools
 typing_extensions
-python-json-logger
 lxml
 nh3
 lxml-stubs

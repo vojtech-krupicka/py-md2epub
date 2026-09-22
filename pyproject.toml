@@ -3,7 +3,7 @@ requires      = ["setuptools>=61.0.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "Md2ePub"
+name = "md2epub"
 dynamic = ["version"]
 description = "A simple python program which creates ePub publication from given list of chapters written in Markdown."
 readme = {file = 'README.md', content-type='text/markdown'}
@@ -17,7 +17,6 @@ classifiers = [
 keywords = ["markdown", "epub", "epub-builder"]
 dependencies = [
     "click",
-    "kachlog",
     "markdown",
     "pydantic", 
     "jinja2", 
@@ -28,7 +27,7 @@ dependencies = [
 requires-python = ">=3.12"
 
 [project.optional-dependencies]
-dev = ["black", "pylint", "pip-tools", "pytest", "lxml-stubs"]
+dev = ["pytest", "lxml-stubs", "ruff"]
 
 [project.urls]
 Homepage = "https://github.com/vojtech-krupicka/md2epub"
@@ -40,5 +39,11 @@ Changelog = "https://github.com/vojtech-krupicka/md2epub/blob/master/CHANGELOG.m
 [project.scripts]
 md2epub = "md2epub.__main__:cli"
 
-[tool.setuptools]
-packages = ["md2epub"]
+[tool.setuptools.packages.find]
+include = ["md2epub*"]
+
+[tool.setuptools.package-data]
+md2epub = ["templates/*", "conf/*"]
+
+[tool.setuptools.dynamic]
+version = {attr = "md2epub._version_from_changelog"}

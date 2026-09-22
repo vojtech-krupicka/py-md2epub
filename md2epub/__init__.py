@@ -13,14 +13,36 @@
 # License: MIT (see LICENSE.md for details).
 
 import os
+import re
 import sys
 from importlib.metadata import PackageNotFoundError, version
+from pathlib import Path
 
-# Try to get version from package metadata, if not available, set to "0.0.0"
+
+def _version_from_changelog() -> str | None:
+    """
+    Read the most recent version heading from CHANGELOG.md, e.g. "## [0.1.0] - 2026-09-23".
+
+    This only works from a source checkout (CHANGELOG.md is not shipped inside the installed
+    package). It exists for two callers: `pyproject.toml`'s `[tool.setuptools.dynamic]` reads it
+    at build time (before the package has any installed metadata to read back), and it is the
+    fallback below for running straight from a checkout with no install at all.
+    """
+    changelog = Path(__file__).resolve().parent.parent / "CHANGELOG.md"
+    if not changelog.is_file():
+        return None
+
+    match = re.search(r"^## \[(\d+\.\d+\.\d+(?:[-+][\w.]*)?)\]", changelog.read_text(encoding="utf-8"), re.MULTILINE)
+    return match.group(1) if match else None
+
+
+# The installed package's own metadata is the real, fast source of truth at runtime - it holds
+# whatever version was baked in at build time (see `_version_from_changelog` above). Only fall
+# back to reading CHANGELOG.md directly when there is no install to ask (e.g. PYTHONPATH=. dev use).
 try:
     __version__ = version("md2epub")
 except PackageNotFoundError:
-    __version__ = "0.0.0"
+    __version__ = _version_from_changelog() or "0.0.0"
 
 # Get some constants
 __appname__ = "md2epub"

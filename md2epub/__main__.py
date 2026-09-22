@@ -13,7 +13,7 @@ from md2epub.utils.exceptions import catch_exception
 from md2epub.utils.timing import timing
 
 # Defaults
-defaul_log_cfg_path = Path(__file__) / "../conf/logging.yaml"
+defaul_log_cfg_path = Path(__file__).parent / "conf" / "logging.yaml"
 default_log_level = logging.INFO
 
 # region Click default options

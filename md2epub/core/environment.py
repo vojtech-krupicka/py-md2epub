@@ -14,8 +14,8 @@ class Environment:
 
         self.trust_extensions: bool = False
 
-        self.static_dir = (Path(__file__).parent / ".." / ".." / "static").resolve()
-        self.template_dir = (Path(__file__).parent / ".." / ".." / "templates").resolve()
+        self.static_dir = (Path(__file__).parent.parent / "static").resolve()
+        self.template_dir = (Path(__file__).parent.parent / "templates").resolve()
         self.set_work_dir(work_dir)
 
     def set_work_dir(self, work_dir: str | Path | None) -> Environment:
