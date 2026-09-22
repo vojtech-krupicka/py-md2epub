@@ -102,8 +102,13 @@ def md2epub_command(func=None, *gargs, **gkwargs):
 
         # Parse command name from func name if not set, strip `_command` from its end and replace `_` to `-`
         cmd_name = kwargs.pop("cmd_name", parse_cmd_name())
+
+        # Pop both unconditionally: `or` short-circuits and would leave the other one in kwargs,
+        # which build_command() does not accept (TypeError, silently swallowed further down).
+        quiet = kwargs.pop("quiet", None)
+        verbose = kwargs.pop("verbose", None)
+        log_level = quiet or verbose or default_log_level
         log_cfg_path = kwargs.pop("log_cfg_path", defaul_log_cfg_path)
-        log_level = kwargs.pop("quiet", None) or kwargs.pop("verbose", None) or default_log_level
 
         # Setup and get get environment
         appname = f"{__appname__}-{cmd_name}"
