@@ -12,6 +12,7 @@ from md2epub.models.toc import Toc, TocItem
 from md2epub.processors.content_processor import ContentProcessor, HtmlInlineFile
 from md2epub.types.epub_content import HtmlFile
 from md2epub.utils.filters import toc_href_filter
+from md2epub.utils.utils import xml_id
 
 if TYPE_CHECKING:
     from md2epub.processors.page_processor import PageProcessor
@@ -99,13 +100,15 @@ class BookProcessor(ContentProcessor[Book]):
         self.render_toc()
 
         # If this book is not root, add its TOC to the parent
+        toc_title = self.model.toc_title or self.model.title
         if self.parent is not None:
             self.parent.add_toc_page(
                 {
                     "level": self.level,
-                    "id": self.model.name,
-                    "name": self.model.title,
-                    "html": self.model.title,
+                    "id": xml_id(self.model.name),
+                    "name": toc_title,
+                    "html": toc_title,
+                    "source": self.toc.file.source if self.toc.file else "",
                     "children": self.toc.children,
                 }
             )

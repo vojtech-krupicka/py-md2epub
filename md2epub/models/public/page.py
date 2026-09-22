@@ -66,6 +66,10 @@ class BookContent(BaseModel, validate_assignment=True):
     name: Annotated[BookContentName, Field()]
     """Custon name of the book content."""
 
+    toc_title: Annotated[str | None, Field()] = None
+    """Optional label to show in the table of contents instead of the default one (a chapter's own
+    heading, a sub-book's title, or as a last resort its technical `name`)."""
+
     stylesheets: Annotated[set[Path], Field()] = set()
     """Set of stylesheets to be included in the EPUB for this content."""
 

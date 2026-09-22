@@ -1,6 +1,8 @@
 import re
 from pathlib import Path, PurePosixPath, PureWindowsPath
 
+from lxml import etree
+
 
 def safe_join(root: Path, rel: Path) -> Path:
     p = (root / rel).resolve()  # absolute rel discards root; resolve() follows symlinks
@@ -43,3 +45,20 @@ def xml_id(text: str) -> str:
     if not re.match(r"[A-Za-z_]", safe):
         safe = f"_{safe}"
     return safe
+
+
+def extract_title(html_content: str) -> str | None:
+    """The chapter's first heading (<h1> - <h6>), if it has one."""
+    try:
+        document = etree.fromstring(f"<div>{html_content}</div>")
+    except etree.XMLSyntaxError:
+        return None
+
+    for level in range(1, 7):
+        heading = document.find(f".//h{level}")
+        if heading is not None:
+            text = "".join(map(str, heading.itertext())).strip()
+            if text:
+                return text
+
+    return None

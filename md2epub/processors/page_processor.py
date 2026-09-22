@@ -8,6 +8,7 @@ from md2epub.models.public.page import Page
 from md2epub.processors.book_processor import BookProcessor
 from md2epub.processors.content_processor import ContentProcessor, HtmlInlineFile
 from md2epub.types.epub_content import EpubFile, HtmlFile
+from md2epub.utils.utils import xml_id
 
 
 class PageProcessor[TModel: Page](ContentProcessor[TModel], abc.ABC):
@@ -67,9 +68,11 @@ class PageProcessor[TModel: Page](ContentProcessor[TModel], abc.ABC):
         if self.model.opf_guide_type:
             self.collector.add_guide(html, self.model.opf_guide_type, self.model.opf_guide_title)
 
-        # Add to TOC (ncx)
-        if self.model.add_to_toc and self.toc:
-            for toc in self.toc:
+        # Add to TOC (ncx). A processor can fill `self.toc` itself with something more specific (a
+        # chapter contributes its own heading text, see ChapterPageProcessor); otherwise fall back to
+        # a single entry made from the page's own title.
+        if self.model.add_to_toc:
+            for toc in self.toc or [self.default_toc_entry()]:
                 toc["source"] = source
                 self.parent.add_toc_page(toc)
 
@@ -106,3 +109,13 @@ class PageProcessor[TModel: Page](ContentProcessor[TModel], abc.ABC):
         html = creator.create_from_path(source)
 
         return html
+
+    def default_toc_entry(self) -> dict:
+        """A single table-of-contents entry made from this page's own title, see `finalize()`."""
+        name = self.model.toc_title or self.model.name
+        return {
+            "level": self.parent.level,
+            "id": xml_id(self.model.name),
+            "name": name,
+            "html": name,
+        }

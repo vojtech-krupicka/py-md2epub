@@ -3,7 +3,7 @@
 
 from md2epub.models.public.page import Chapter, CoverPage, CustomPage, SubBook, TitlePage, TocPage
 from md2epub.processors.page_processor import PageProcessor
-from md2epub.utils.utils import safe_join
+from md2epub.utils.utils import extract_title, safe_join, xml_id
 
 
 class CoverPageProcessor(PageProcessor[CoverPage]):
@@ -71,14 +71,29 @@ class ChapterPageProcessor(PageProcessor[Chapter]):
         # Prepare source, stylesheets and files
         source, stylesheets, _ = self.prepare(source=source)
 
+        # Use the chapter's own first heading as its title, both in <title> and in the table of
+        # contents; fall back to the source file name if the chapter has no heading of its own.
+        title = extract_title(html_content) or self.model.source.stem
+        toc_title = self.model.toc_title or title
+
         # Render and dd content.opf
         content = self.render(
             self.model.template_path,
             book=self.parent.model,
             stylesheets=stylesheets,
-            title=self.model.source.stem,
+            title=title,
             content=html_content,
         )
+
+        if self.model.add_to_toc:
+            self.toc = [
+                {
+                    "level": self.parent.level,
+                    "id": xml_id(self.model.source.stem),
+                    "name": toc_title,
+                    "html": toc_title,
+                }
+            ]
 
         # Finalize HTML file
         self.finalize(content, source)

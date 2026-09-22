@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import posixpath
 import re
 import zipfile
 from pathlib import Path
@@ -126,6 +127,122 @@ class TestStructure:
 
         assert "OEBPS/content/part1/toc.xhtml" in names  # generated pages: <book>/<page name>.xhtml
         assert "OEBPS/text/ch1.xhtml" in names  # chapters keep the folder of their source
+
+    # @pytest.mark.xfail(
+    #     strict=True,
+    #     reason="a sub-book's own heading in the TOC/NCX is a container with no file of its own, "
+    #     "toc_href_filter has nothing to point it at and renders an empty href/src",
+    # )
+    def test_sub_book_heading_is_not_a_dead_link(self, project: Project):
+        """A sub-book's heading groups its children; it must still be a working link, not `href=""`."""
+        project.manifest(
+            book={
+                "pages": [
+                    {"type": "toc"},
+                    {
+                        "type": "book",
+                        "book": {"name": "part1", "title": "Part One", "pages": [{"type": "toc"}, "text/ch1.md"]},
+                    },
+                ]
+            }
+        )
+        epub = zipfile.ZipFile(project.build())
+        toc = xml(epub, "OEBPS/content/toc.xhtml")
+        ncx = xml(epub, "OEBPS/toc.ncx")
+
+        toc_hrefs = toc.xpath("//x:a/@href", namespaces=NS)
+        ncx_srcs = ncx.xpath("//ncx:navPoint/ncx:content/@src", namespaces=NS)
+
+        # Nothing should be empty, and everything non-empty should resolve to a real entry in the EPUB.
+        assert "" not in toc_hrefs
+        assert "" not in ncx_srcs
+        for href in toc_hrefs:
+            target = posixpath.normpath(
+                posixpath.join(posixpath.dirname("OEBPS/content/toc.xhtml"), href.split("#")[0])
+            )
+            assert target in epub.namelist(), href
+        for src in ncx_srcs:
+            target = posixpath.normpath(posixpath.join("OEBPS", src.split("#")[0]))
+            assert target in epub.namelist(), src
+
+        # The heading itself, and its child chapter, must still be reachable as text somewhere on the page.
+        assert "Part One" in " ".join(toc.xpath("//text()"))
+
+    # @pytest.mark.xfail(strict=True, reason="Page/Book has no `toc_title` field yet")
+    def test_chapter_toc_title_overrides_the_heading(self, project: Project):
+        """`toc_title` overrides the table-of-contents label only, not the chapter's own <title>."""
+        project.write("text/ch1.md", "# Real Heading\n\nBody.\n")
+        project.manifest(
+            book={
+                "pages": [
+                    {"type": "toc"},
+                    {"type": "chapter", "source": "text/ch1.md", "toc_title": "Custom Label"},
+                ]
+            }
+        )
+
+        epub = zipfile.ZipFile(project.build())
+        toc = xml(epub, "OEBPS/content/toc.xhtml")
+        ncx = xml(epub, "OEBPS/toc.ncx")
+        chapter = xml(epub, "OEBPS/text/ch1.xhtml")
+
+        assert toc.xpath("//x:a/text()", namespaces=NS) == ["Custom Label"]
+        assert ncx.xpath("//ncx:navLabel/ncx:text/text()", namespaces=NS) == ["Custom Label"]
+        assert chapter.xpath("string(//x:title)", namespaces=NS) == "Real Heading"
+
+    # @pytest.mark.xfail(strict=True, reason="Page/Book has no `toc_title` field yet")
+    def test_page_toc_title_overrides_the_default_label(self, project: Project):
+        """A page that has no heading of its own (a custom page) falls back to its `name`; `toc_title` overrides it."""
+        template = project.write(
+            "page.jinja", '<html xmlns="http://www.w3.org/1999/xhtml"><body><p>hi</p></body></html>'
+        )
+        project.manifest(
+            book={
+                "pages": [
+                    {"type": "toc"},
+                    {
+                        "type": "custom",
+                        "name": "extras",
+                        "template": str(template),
+                        "add_to_toc": True,
+                        "toc_title": "Bonus Material",
+                    },
+                    "text/ch1.md",
+                ]
+            }
+        )
+
+        epub = zipfile.ZipFile(project.build())
+        toc = xml(epub, "OEBPS/content/toc.xhtml")
+
+        assert "Bonus Material" in toc.xpath("//x:a/text()", namespaces=NS)
+        assert "extras" not in " ".join(toc.xpath("//text()"))
+
+    # @pytest.mark.xfail(strict=True, reason="Page/Book has no `toc_title` field yet")
+    def test_sub_book_toc_title_overrides_the_book_title(self, project: Project):
+        """A sub-book's `toc_title` overrides its own heading in the parent's table of contents."""
+        project.manifest(
+            book={
+                "pages": [
+                    {"type": "toc"},
+                    {
+                        "type": "book",
+                        "book": {
+                            "name": "part1",
+                            "title": "The Real, Long Title Of This Part",
+                            "toc_title": "Part One",
+                            "pages": [{"type": "toc"}, "text/ch1.md"],
+                        },
+                    },
+                ]
+            }
+        )
+
+        epub = zipfile.ZipFile(project.build())
+        text = " ".join(xml(epub, "OEBPS/content/toc.xhtml").xpath("//text()"))
+
+        assert "Part One" in text
+        assert "The Real, Long Title Of This Part" not in text
 
 
 # region Metadata
