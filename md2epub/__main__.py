@@ -178,6 +178,7 @@ def build_command(
     input_manifest: Path | None = None,
     output_epub: Path | None = None,
     overwrite: bool = False,
+    trust_extensions: bool = False,
 ):
     """
     Build ePub from input MANIFEST file into output EPUB_FILE.
@@ -208,7 +209,12 @@ def build_command(
 
     from md2epub.commands import build
 
-    return build.run(input_manifest, output_epub, overwrite)
+    return build.run(
+        input_manifest,
+        output_epub,
+        overwrite=overwrite,
+        trust_extensions=trust_extensions,
+    )
 
 
 @cli.command(name="create")
