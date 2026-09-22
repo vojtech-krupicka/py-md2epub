@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import uuid
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Annotated, Any
@@ -118,6 +119,10 @@ class Manifest(BaseModel, validate_assignment=True):
 
         if not self.calibre.author_link_map:
             self.calibre.author_link_map = f"{{&quot;{self.author.name}&quot;: &quot;&quot;}}"
+
+        if not (self.book_id.value or "").strip():
+            seed = f"md2epub|{self.title}|{self.author.name}|{self.published}|{self.language}"
+            self.book_id.value = str(uuid.uuid5(uuid.NAMESPACE_URL, seed))
 
         # Set all main info from manifest into the main book element
         self.book.title = self.title

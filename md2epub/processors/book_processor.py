@@ -99,7 +99,9 @@ class BookProcessor(ContentProcessor[Book]):
         # Render TOC for current book
         self.render_toc()
 
-        # If this book is not root, add its TOC to the parent
+        # If this book is not root, add its TOC to the parent. `render_toc()` above already guarantees
+        # `self.toc.file` is set (it raises otherwise), so this heading can link to the sub-book's own
+        # table of contents instead of being a dead `href=""`.
         toc_title = self.model.toc_title or self.model.title
         if self.parent is not None:
             self.parent.add_toc_page(

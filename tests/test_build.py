@@ -270,6 +270,17 @@ class TestMetadata:
         assert ncx.xpath("//ncx:meta[@name='dtb:uid']/@content", namespaces=NS) == [uid]
 
     # @pytest.mark.xfail(
+    #     strict=True, reason="book_id.value is a fresh random uuid4 on every load, not derived from the book"
+    # )
+    def test_book_id_is_stable_across_rebuilds(self, project: Project):
+        """Two builds of the same, unchanged project must produce the same book identifier."""
+        first = xml(zipfile.ZipFile(project.build(project.out_dir / "a.epub")), "OEBPS/content.opf")
+        second = xml(zipfile.ZipFile(project.build(project.out_dir / "b.epub")), "OEBPS/content.opf")
+
+        identifier = "string(//dc:identifier[@id])"
+        assert first.xpath(identifier, namespaces=NS) == second.xpath(identifier, namespaces=NS)
+
+    # @pytest.mark.xfail(
     #     strict=True,
     #     reason="content.opf.jinja reads manifest.creation/publication/modification (fields are created/...)",
     # )

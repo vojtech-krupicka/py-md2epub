@@ -43,11 +43,44 @@ class TestMetadata:
         assert uuid.UUID(m.book_id.value)
 
     # @pytest.mark.xfail(
-    #     strict=True,
-    #     reason="`book_id: BookId = BookId()` is evaluated once at import: every manifest in a process shares one UUID",
+    #     strict=True, reason="book_id.value is a fresh random uuid4 on every load, not derived from the book"
     # )
-    def test_every_manifest_gets_its_own_book_id(self):
-        assert load(MINIMAL).book_id.value != load(MINIMAL).book_id.value
+    def test_book_id_is_stable_for_the_same_title_and_author(self):
+        """Rebuilding the same, unchanged book must not hand it a new identity every time (readers key on it)."""
+        manifest = MINIMAL + "author: Jane Doe\n"
+
+        assert load(manifest).book_id.value == load(manifest).book_id.value
+
+    def test_book_id_changes_with_the_title(self):
+        """Control: this holds both before and after the fix (random or derived, different input differs)."""
+        a = load(MINIMAL + "author: Jane Doe\n")
+        b = load(MINIMAL.replace("Test Book", "A Different Book") + "author: Jane Doe\n")
+
+        assert a.book_id.value != b.book_id.value
+
+    def test_book_id_changes_with_the_author(self):
+        """Control: this holds both before and after the fix (random or derived, different input differs)."""
+        a = load(MINIMAL + "author: Jane Doe\n")
+        b = load(MINIMAL + "author: John Smith\n")
+
+        assert a.book_id.value != b.book_id.value
+
+    def test_explicit_book_id_is_kept(self):
+        """An id the user picked on purpose (e.g. a real ISBN-derived UUID) must never be overridden."""
+        m = load(MINIMAL + "book_id: {value: my-custom-id}\n")
+
+        assert m.book_id.value == "my-custom-id"
+
+    # @pytest.mark.xfail(
+    #     strict=True, reason="book_id.value is a fresh random uuid4 on every load, not derived from the book"
+    # )
+    @pytest.mark.parametrize("blank", ["", "   "])
+    def test_blank_explicit_book_id_value_is_treated_as_unset(self, blank: str):
+        """`book_id: {value: ''}` (or all-whitespace) must not ship an empty <dc:identifier> - derive one instead."""
+        m = load(MINIMAL + f"book_id: {{value: {blank!r}}}\n")
+
+        assert m.book_id.value
+        assert m.book_id.value.strip() == m.book_id.value
 
     def test_full_title(self):
         assert load(MINIMAL).full_title == "Test Book"

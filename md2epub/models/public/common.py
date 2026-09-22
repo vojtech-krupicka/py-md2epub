@@ -41,6 +41,10 @@ class BookId(Identifier, validate_assignment=True):
     id: Annotated[str, Field("BookId", **docs.bookid_id)] = "BookId"
     """The unique ID of the book."""
 
+    value: Annotated[str | None, Field(**docs.identifier_value)] = None  # type: ignore[reportIncompatibleVariableOverride]
+    """Overrides `Identifier.value`'s random default: `None` means "not set by the user", so Manifest
+    can tell it apart and derive a stable one instead of a fresh random uuid on every load."""
+
 
 class Contributor(BaseModel, validate_assignment=True):
     """
