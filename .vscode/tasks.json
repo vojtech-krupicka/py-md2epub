@@ -1,0 +1,20 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        { "label": "uv: add", "type": "shell", "command": "uv add --bounds major ${input:package}" },
+        { "label": "uv: add (dev)", "type": "shell", "command": "uv add --bounds major --optional dev ${input:package}" },
+        { "label": "uv: remove", "type": "shell", "command": "uv remove ${input:package}" },
+        { "label": "uv: remove (dev)", "type": "shell", "command": "uv remove --optional dev ${input:package}" },
+        { "label": "uv: update", "type": "shell", "command": "uv sync --upgrade --extra dev" },
+        { "label": "uv: install", "type": "shell", "command": "uv sync --no-dev" },
+        { "label": "uv: install (dev)", "type": "shell", "command": "uv sync --extra dev" },
+        { "label": "uv: lock", "type": "shell", "command": "uv lock" }
+    ],
+    "inputs": [
+        {
+            "id": "package",
+            "description": "Package name to install",
+            "type": "promptString"
+        }
+    ]
+}

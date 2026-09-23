@@ -10,18 +10,21 @@
         "tamasfe.even-better-toml"
       ],
       "settings": {
-        "python.defaultInterpreterPath": "/usr/bin/python3"
+        "python.defaultInterpreterPath": "/app/.venv/bin/python"
       }
     }
   },
   "build": {
       "context": "${localWorkspaceFolder}",
-      "dockerfile": "${localWorkspaceFolder}/Dockerfile"
+      "dockerfile": "${localWorkspaceFolder}/Dockerfile",
+      "target": "devel"
   },
   "mounts": [
     "source=${localWorkspaceFolder},target=/app,type=bind",
     "source=${localWorkspaceFolder}/../py-md2epub-workdir,target=/app/workdir,type=bind"
   ],
   "remoteUser": "vscode",
-  "workspaceFolder": "/app"
+  "workspaceFolder": "/app",
+  "postCreateCommand": "uv sync --extra dev"
+  
 }

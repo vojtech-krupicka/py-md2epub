@@ -15,19 +15,23 @@ classifiers = [
     "Programming Language :: Python :: 3",
 ]
 keywords = ["markdown", "epub", "epub-builder"]
-dependencies = [
-    "click",
-    "markdown",
-    "pydantic", 
-    "jinja2", 
-    "pyyaml",
-    "lxml",
-    "nh3"
-]
 requires-python = ">=3.12"
+dependencies = [
+    "click>=8.5.0,<9.0.0",
+    "jinja2>=3.1.6,<4.0.0",
+    "lxml>=6.1.3,<7.0.0",
+    "markdown>=3.10.3,<4.0.0",
+    "nh3>=0.3.7,<0.4.0",
+    "pydantic>=2.13.5,<3.0.0",
+    "pyyaml>=6.0.3,<7.0.0",
+]
 
 [project.optional-dependencies]
-dev = ["pytest", "lxml-stubs", "ruff"]
+dev = [
+    "lxml-stubs>=0.5.1,<0.6.0",
+    "pytest>=9.1.1,<10.0.0",
+    "ruff>=0.16.8,<0.17.0",
+]
 
 [project.urls]
 Homepage = "https://github.com/vojtech-krupicka/md2epub"
