@@ -25,6 +25,6 @@
   ],
   "remoteUser": "vscode",
   "workspaceFolder": "/app",
-  "postCreateCommand": "uv sync --extra dev"
-  
+  "postCreateCommand": "uv sync --extra dev",
+  "postAttachCommand": "uv sync --extra dev"  
 }
