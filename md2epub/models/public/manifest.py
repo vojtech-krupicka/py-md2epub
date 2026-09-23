@@ -15,7 +15,7 @@ from md2epub.models.public.page import Book
 
 
 class Manifest(BaseModel, validate_assignment=True):
-    file: Annotated[Path, Field()]
+    file: Annotated[Path, Field(**docs.manifest_file)]
     """The path to the manifest file."""
 
     title: Annotated[str, Field(**docs.manifest_title)]
@@ -27,10 +27,10 @@ class Manifest(BaseModel, validate_assignment=True):
     subtitle: Annotated[str, Field(**docs.manifest_subtitle)] = ""
     """The subtitle of the book."""
 
-    author: Annotated[Author, Field(default_factory=Author)]
+    author: Annotated[Author, Field(default_factory=Author, **docs.manifest_author)]
     """The main author of the book."""
 
-    additional_authors: Annotated[list[Author], Field()] = []
+    additional_authors: Annotated[list[Author], Field(**docs.manifest_additional_authors)] = []
     """Additional authors of the book."""
 
     language: Annotated[str, Field(**docs.manifest_language)] = "en"
@@ -41,7 +41,7 @@ class Manifest(BaseModel, validate_assignment=True):
 
     # region Optional metadata
 
-    book_id: Annotated[BookId, Field(default_factory=BookId)]
+    book_id: Annotated[BookId, Field(default_factory=BookId, **docs.manifest_book_id)]
     """The unique ID of the book."""
 
     published: Annotated[str | int | None, Field(**docs.manifest_published)] = None
@@ -50,47 +50,47 @@ class Manifest(BaseModel, validate_assignment=True):
     modified: Annotated[str | int | None, Field(**docs.manifest_modified)] = None
     """The date and time when the book was last modified. Can be a string or an integer timestamp."""
 
-    format: Annotated[str, Field()] = "application/epub+zip"
-    """The file format, physical medium, or dimensions of the resource; 
+    format: Annotated[str, Field(**docs.manifest_format)] = "application/epub+zip"
+    """The file format, physical medium, or dimensions of the resource;
     see https://idpf.org/epub/20/spec/OPF_2.0.1_draft.htm#Section2.2.9"""
 
-    identifiers: Annotated[list[Identifier], Field()] = []
+    identifiers: Annotated[list[Identifier], Field(**docs.manifest_identifiers)] = []
     """Identifies as An unambiguous reference to the resource within a given context.
     see: https://idpf.org/epub/20/spec/OPF_2.0.1_draft.htm#Section2.2.10"""
 
-    subjects: Annotated[list[str], Field()] = []
+    subjects: Annotated[list[str], Field(**docs.manifest_subjects)] = []
     """The topic of the resource.
-    Typically, the subject will be represented using keywords, key phrases, or classification codes. 
+    Typically, the subject will be represented using keywords, key phrases, or classification codes.
     Recommended best practice is to use a controlled vocabulary.
     see: https://idpf.org/epub/20/spec/OPF_2.0.1_draft.htm#Section2.2.3"""
 
-    description: Annotated[str, Field()] = ""
-    """Description may include but is not limited to: an abstract, a table of contents, a graphical 
+    description: Annotated[str, Field(**docs.manifest_description)] = ""
+    """Description may include but is not limited to: an abstract, a table of contents, a graphical
     representation, or a free-text account of the resource.
     see: https://idpf.org/epub/20/spec/OPF_2.0.1_draft.htm#Section2.2.4"""
 
-    publisher: Annotated[str, Field()] = ""
+    publisher: Annotated[str, Field(**docs.manifest_publisher)] = ""
     """An entity responsible for making the resource available.
     see: https://idpf.org/epub/20/spec/OPF_2.0.1_draft.htm#Section2.2.5"""
 
-    contributors: Annotated[list[Contributor], Field()] = []
-    """The guidelines for using names of persons or organizations as creators also apply to 
+    contributors: Annotated[list[Contributor], Field(**docs.manifest_contributors)] = []
+    """The guidelines for using names of persons or organizations as creators also apply to
     contributors. Typically, the name of a Contributor should be used to indicate the entity.
     see: https://idpf.org/epub/20/spec/OPF_2.0.1_draft.htm#Section2.2.6"""
 
-    rights: Annotated[list[str], Field()] = []
+    rights: Annotated[list[str], Field(**docs.manifest_rights)] = []
     """Information about rights held in and over the resource.
     see: https://idpf.org/epub/20/spec/OPF_2.0.1_draft.htm#Section2.2.15"""
 
-    calibre: Annotated[CalibreMetadata, Field(default_factory=CalibreMetadata)]
+    calibre: Annotated[CalibreMetadata, Field(default_factory=CalibreMetadata, **docs.manifest_calibre)]
     """Calibre metadata for sorting and defining book series and book series index."""
 
     # region Private and other fields
 
-    book: Annotated[Book, Field()]
+    book: Annotated[Book, Field(**docs.manifest_book)]
     """Book model containing information about the book."""
 
-    config: Annotated[Config, Field(default_factory=Config)]
+    config: Annotated[Config, Field(default_factory=Config, **docs.manifest_config)]
     """Config model for epub, parser and markdown converter"""
 
     # region Computed fields and validators

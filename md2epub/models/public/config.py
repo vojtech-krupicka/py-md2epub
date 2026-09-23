@@ -5,25 +5,28 @@ from typing import Annotated, Any, Literal
 
 from pydantic import BaseModel, Field, computed_field, model_validator
 
+from md2epub.models.public.docs import config as docs
+
 
 class EpubConfig(BaseModel, validate_assignment=True):
     """Application configuration for the Md2ePub from Manifest file."""
 
-    epub_suffix: Literal[".epub", ".zip"] = ".epub"
+    epub_suffix: Annotated[Literal[".epub", ".zip"], Field(**docs.epub_suffix)] = ".epub"
     """The suffix for the output EPUB file."""
 
-    html_suffix: str = ".xhtml"
+    html_suffix: Annotated[str, Field(**docs.html_suffix)] = ".xhtml"
     """The extension for the HTML files."""
 
-    folders: Annotated[list[Path], Field()] = []
+    folders: Annotated[list[Path], Field(**docs.epub_folders)] = []
     """List of folders to include in the EPUB."""
 
-    files: Annotated[list[Path], Field()] = []
+    files: Annotated[list[Path], Field(**docs.epub_files)] = []
     """List of files to include in the EPUB."""
 
 
 class ParserConfig(BaseModel, validate_assignment=True):
-    foo: Annotated[str, Field(default="bar")] = "bar"
+    foo: Annotated[str, Field(**docs.parser_placeholder)] = "bar"
+    """Placeholder - no parser-level configuration exists yet."""
 
 
 DEFAULT_EXTENSIONS = [
@@ -54,19 +57,19 @@ DEFAULT_EXTENSION_CONFIGS = {
 class MarkdownConfig(BaseModel, validate_assignment=True):
     """Configuration for the Markdown parser."""
 
-    tab_length: Annotated[int, Field(default=4)] = 4
+    tab_length: Annotated[int, Field(**docs.tab_length)] = 4
     """The length of tabs in the Markdown source."""
 
-    output_format: Annotated[Literal["html", "xhtml"], Field()] = "xhtml"
+    output_format: Annotated[Literal["html", "xhtml"], Field(**docs.output_format)] = "xhtml"
     """The output format of the Markdown parser. Can be either 'html' or 'xhtml'."""
 
-    additional_extensions: Annotated[list[str], Field()] = []
+    additional_extensions: Annotated[list[str], Field(**docs.additional_extensions)] = []
     """Additional extensions to use with the Markdown parser along with the default ones."""
 
-    extensions_override: Annotated[list[str], Field()] = []
+    extensions_override: Annotated[list[str], Field(**docs.extensions_override)] = []
     """Override the default extensions with these extensions for the Markdown parser."""
 
-    extension_configs: Annotated[dict[str, Any], Field()] = DEFAULT_EXTENSION_CONFIGS
+    extension_configs: Annotated[dict[str, Any], Field(**docs.extension_configs)] = DEFAULT_EXTENSION_CONFIGS
     """The configuration for the extensions used with the Markdown parser."""
 
     @computed_field
@@ -79,20 +82,20 @@ class MarkdownConfig(BaseModel, validate_assignment=True):
 class Config(BaseModel, validate_assignment=True):
     """The configuration for the md2epub application within Manifest file."""
 
-    include_file: Annotated[Path | None, Field()] = None
-    """Optional config file from which to include additional configuration. 
+    include_file: Annotated[Path | None, Field(**docs.include_file)] = None
+    """Optional config file from which to include additional configuration.
     This can be a YAML or JSON file."""
 
-    includes_files: Annotated[list[Path], Field()] = []
+    includes_files: Annotated[list[Path], Field(**docs.includes_files)] = []
     """List of config files to included in this config."""
 
-    epub: EpubConfig = EpubConfig()
+    epub: Annotated[EpubConfig, Field(**docs.config_epub)] = EpubConfig()
     """Basic configuration of ePub"""
 
-    parser: ParserConfig = ParserConfig()
+    parser: Annotated[ParserConfig, Field(**docs.config_parser)] = ParserConfig()
     """Basic configuration for parser from MD to HTML"""
 
-    markdown: MarkdownConfig = MarkdownConfig()
+    markdown: Annotated[MarkdownConfig, Field(**docs.config_markdown)] = MarkdownConfig()
     """Basic configuration of Markdown library"""
 
     @model_validator(mode="before")
