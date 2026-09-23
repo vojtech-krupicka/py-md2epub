@@ -1,4 +1,3 @@
-include md2epub/conf/*.toml
-include data
+include examples
 include README.md
 include LICENSE

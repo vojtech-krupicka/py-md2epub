@@ -18,8 +18,10 @@ import sys
 from importlib.metadata import PackageNotFoundError, version
 from pathlib import Path
 
+NO_VERSION = "0.0.0"
 
-def _version_from_changelog() -> str | None:
+
+def _version_from_changelog() -> str:
     """
     Read the most recent version heading from CHANGELOG.md, e.g. "## [0.1.0] - 2026-09-23".
 
@@ -28,12 +30,13 @@ def _version_from_changelog() -> str | None:
     at build time (before the package has any installed metadata to read back), and it is the
     fallback below for running straight from a checkout with no install at all.
     """
+
     changelog = Path(__file__).resolve().parent.parent / "CHANGELOG.md"
     if not changelog.is_file():
-        return None
+        return NO_VERSION
 
     match = re.search(r"^## \[(\d+\.\d+\.\d+(?:[-+][\w.]*)?)\]", changelog.read_text(encoding="utf-8"), re.MULTILINE)
-    return match.group(1) if match else None
+    return match.group(1) if match else NO_VERSION
 
 
 # The installed package's own metadata is the real, fast source of truth at runtime - it holds
@@ -42,7 +45,7 @@ def _version_from_changelog() -> str | None:
 try:
     __version__ = version("md2epub")
 except PackageNotFoundError:
-    __version__ = _version_from_changelog() or "0.0.0"
+    __version__ = _version_from_changelog() or NO_VERSION
 
 # Get some constants
 __appname__ = "md2epub"
