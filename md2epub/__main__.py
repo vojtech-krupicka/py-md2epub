@@ -222,14 +222,39 @@ def build_command(
     )
 
 
-@cli.command(name="create")
+@cli.command(name="init")
 @common_options
 @md2epub_command()
-def create_command(**kwargs):
-    # from md2epub.commands import create
+def init_command(**kwargs):
+    """
+    Initialize a new md2epub project.
 
-    # return create.run(**kwargs)
-    print("Creating...")
+    Creates a starter manifest plus the folder structure it expects (chapters, images, styles),
+    so `md2epub build` has something to build right away.
+
+    Not implemented yet.
+    """
+
+    print("md2epub init: not implemented yet.")
+
+
+@cli.command(name="unpack")
+@common_options
+@md2epub_command()
+def unpack_command(**kwargs):
+    """
+    Unpack an existing EPUB file back into an editable project (a manifest plus loose files).
+
+    This is a best-effort reverse of `build`, meant for inspecting or reworking an EPUB you do not
+    have the original project for - not a guaranteed round trip. Metadata is read from the OPF, the
+    manifest's page order from the spine, and chapter content is extracted as-is (XHTML, not
+    converted back to Markdown). Page type (cover/title/toc/chapter) cannot be recovered from the
+    EPUB alone, so every spine entry comes back as a plain `chapter` page pointing at its own file.
+
+    Not implemented yet.
+    """
+
+    print("md2epub unpack: not implemented yet.")
 
 
 @cli.command(name="schema")
