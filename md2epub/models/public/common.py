@@ -109,4 +109,4 @@ class CalibreMetadata(BaseModel, validate_assignment=True):
     """The index within the book series."""
 
     author_link_map: Annotated[str, Field(**docs.calibre_author_link_map)] = ""
-    """The author name link map, for example `Author Name <https://author-website.com>`."""
+    """The author name link map (a JSON object with HTML-escaped quotes), generated from author when empty."""

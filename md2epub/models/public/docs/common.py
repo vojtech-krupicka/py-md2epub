@@ -66,15 +66,18 @@ calibre_title_sort = {
 calibre_series = {
     "title": "Book series title",
     "examples": ["Harry Potter"],
-    "description": (""),
+    "description": "The name of the series this book belongs to. Calibre uses it to group books of one series together.",
 }
 calibre_series_index = {
     "title": "Index within the book series",
     "examples": [1, 2, 3],
-    "description": (""),
+    "description": "The position of this book within its `series`, starting from 1. Calibre sorts the series by it.",
 }
 calibre_author_link_map = {
     "title": "Author name link map",
     "examples": ["{&quot;Rowlingova, Joanne Kathleen&quot;: &quot;&quot;}"],
-    "description": (""),
+    "description": (
+        "Maps an author name to a link to their page, as a JSON object with HTML-escaped quotes (`&quot;`)."
+        " Left empty, it is generated from the main `author` with an empty link, so you rarely need to set it."
+    ),
 }

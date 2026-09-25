@@ -5,7 +5,7 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Md2ePub -- build",
+            "name": "M2P -- build",
             "type": "debugpy",
             "request": "launch",
             "justMyCode": false,
@@ -20,26 +20,62 @@
             ]
         },
         {
-            "name": "Md2ePub -- help",
+            "name": "M2P -- init",
             "type": "debugpy",
             "request": "launch",
             "justMyCode": false,
             "cwd": "${workspaceFolder}",
             "module": "md2epub",
             "args": [
+                "init",
+                "-v"
+            ]
+        },
+        {
+            "name": "M2P -- unpack",
+            "type": "debugpy",
+            "request": "launch",
+            "justMyCode": false,
+            "cwd": "${workspaceFolder}",
+            "module": "md2epub",
+            "args": [
+                "unpack",
+                "-v"
+            ]
+        },
+        {
+            "name": "M2P -- schema",
+            "type": "debugpy",
+            "request": "launch",
+            "justMyCode": false,
+            "cwd": "${workspaceFolder}",
+            "module": "md2epub",
+            "args": [
+                "schema",
                 "-v",
+                "--output-dir",
+                "docs"
+            ]
+        },
+        {
+            "name": "M2P -- help",
+            "type": "debugpy",
+            "request": "launch",
+            "justMyCode": false,
+            "cwd": "${workspaceFolder}",
+            "module": "md2epub",
+            "args": [
                 "--help"
             ]
         },
         {
-            "name": "Md2ePub -- version",
+            "name": "M2P -- version",
             "type": "debugpy",
             "request": "launch",
             "justMyCode": false,
             "cwd": "${workspaceFolder}",
             "module": "md2epub",
             "args": [
-                "-v",
                 "--version"
             ]
         }

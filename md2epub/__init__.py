@@ -45,7 +45,7 @@ def _version_from_changelog() -> str:
 try:
     __version__ = version("md2epub")
 except PackageNotFoundError:
-    __version__ = _version_from_changelog() or NO_VERSION
+    __version__ = _version_from_changelog()
 
 # Get some constants
 __appname__ = "md2epub"

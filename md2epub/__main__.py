@@ -257,14 +257,32 @@ def unpack_command(**kwargs):
     print("md2epub unpack: not implemented yet.")
 
 
+# region Schema command
+
+schema_output_option = click.option(
+    "-o",
+    "--output-dir",
+    type=click.Path(file_okay=False, resolve_path=True, path_type=Path),
+    default=".",
+    show_default=True,
+    help="Directory to write `openapi.yaml` and `swagger-ui.html` into (created if missing).",
+)
+
+
 @cli.command(name="schema")
+@schema_output_option
 @common_options
 @md2epub_command()
-def schema_command(**kwargs):
-    # from md2epub.commands import schema
+def schema_command(output_dir: Path):
+    """
+    Generate the manifest schema as an OpenAPI document plus a browsable Swagger UI page.
 
-    # return schema.run(**kwargs)
-    print("Generating schema...")
+    The schema describes every field of the manifest (and of the pages inside it), so it can be used for editor
+    validation and autocompletion or for reading the field documentation in a browser.
+    """
+    from md2epub.commands import schema
+
+    return schema.run(output_dir)
 
 
 if __name__ == "__main__":

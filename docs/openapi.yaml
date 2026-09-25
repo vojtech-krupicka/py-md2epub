@@ -1,0 +1,1992 @@
+openapi: 3.1.0
+info:
+  title: Markdown 2 ePub convertor
+  description: 'Reference for the `md2epub` manifest: the YAML or JSON file that describes
+    a book and how to build it into an EPUB.
+
+
+    The schemas below document every manifest field, including the page types (`cover`,
+    `title`, `toc`, `chapter`, `custom`, `subbook`) that make up the book. `Manifest`
+    is the top-level document, so start there.
+
+
+    This is a description of the manifest file format, not a web API: there are no
+    endpoints, only schemas. It is generated from the models with `md2epub schema`.'
+  version: 0.0.0
+  contact:
+    email: voker@email.cz
+  license:
+    name: MIT
+    url: https://mit-license.org/
+externalDocs:
+  description: GitHub
+  url: https://github.com/vojtech-krupicka/py-md2epub
+components:
+  schemas:
+    Author:
+      description: 'A author of the publication. It fills `creator` elements in ePub
+        OPF `package` metadata.
+
+
+        Publications can have multiple co-authors, the order of authors is presumed
+        to define the order in which the creator''s names **should** be presented
+        by the Reading System.
+
+
+        Note: additional contributors whose contributions are secondary to those listed
+        in `creator` elements **should** be named in `contributor` elements.
+
+
+        See: <https://idpf.org/epub/20/spec/OPF_2.0.1_draft.htm#Section2.2.2>'
+      properties:
+        role:
+          default: aut
+          description: 'Lower-case 3-character long values specifies contributor''s
+            role.
+
+
+            See: <https://idpf.org/epub/20/spec/OPF_2.0.1_draft.htm#Section2.2.6>'
+          examples:
+          - aut
+          - art
+          - edt
+          - ill
+          title: Contributor's role
+          type: string
+        name:
+          default: Anonymous Entity
+          description: Contributor's full name
+          examples:
+          - Rev. Dr. Martin Luther King Jr.
+          title: Contributor's name
+          type: string
+        file_as:
+          default: ''
+          description: 'The `file-as` attribute should be used to specify a normalized
+            form of the contents, suitable for machine processing.
+
+
+            If this is ommited, it will be filled from contributor''s name in format:
+
+
+            `Surname, Name`, for example `Martin Luther King` will be transformed
+            to`King, Martin Luther`.'
+          examples:
+          - King, Martin Luther Jr.
+          title: Normalized form of the contributor's name
+          type: string
+      title: Author
+      type: object
+    Book:
+      description: Represents a book in the EPUB format.
+      properties:
+        name:
+          description: Used to build this content's own path inside the EPUB (`content/<name>.xhtml`
+            for a generated page, or the folder name for a sub-book). Letters, digits,
+            `.`, `_` and `-` only - not a name made only of dots, so it can never
+            point outside the project.
+          examples:
+          - chapter
+          - part1
+          - my-page
+          pattern: ^\.*[A-Za-z0-9_-][A-Za-z0-9._-]*$
+          title: Technical name
+          type: string
+        toc_title:
+          anyOf:
+          - type: string
+          - type: 'null'
+          default: null
+          description: Optional label to show in the table of contents instead of
+            the default one - a chapter's own first heading, a sub-book's `title`,
+            or as a last resort its technical `name`. Only changes the table of contents
+            entry, not the page's own heading or `<title>`.
+          examples:
+          - Chapter One
+          - Part One
+          title: Table of contents label
+        stylesheets:
+          default: []
+          description: Stylesheets linked from this content. Inherited by nested content
+            unless overridden.
+          examples:
+          - - styles/book.css
+          items:
+            format: path
+            type: string
+          title: Stylesheets
+          type: array
+          uniqueItems: true
+        stylesheets_overrides:
+          default: []
+          description: Stylesheets that replace, rather than add to, whatever this
+            content would otherwise inherit from its parent.
+          examples:
+          - - styles/chapter-only.css
+          items:
+            format: path
+            type: string
+          title: Stylesheet overrides
+          type: array
+          uniqueItems: true
+        supertitle:
+          default: ''
+          description: The supertitle of the publication. This is not really in OPF
+            document or in specifications and maybe, this will be removed later.
+          examples:
+          - First book
+          title: The supertitle of the publication
+          type: string
+        title:
+          default: ''
+          description: 'An `<dc:title>` element. An OPF Package Document must include
+            at least one instance of this element type, however multiple instances
+            are permitted.
+
+
+            See: https://idpf.org/epub/20/spec/OPF_2.0.1_draft.htm#Section2.2.1'
+          examples:
+          - Alice in Wonderland
+          title: The title of the publication
+          type: string
+        subtitle:
+          default: ''
+          description: The subtitle of the publication. This is not really in OPF
+            document or in specifications and maybe, this will be removed later.
+          examples:
+          - A tale of wonderland
+          title: The subtitle of the publication
+          type: string
+        author:
+          anyOf:
+          - $ref: '#/components/schemas/Author'
+          - type: 'null'
+          default: null
+          description: 'The book''s main author. A plain string is shorthand for `{name:
+            <string>}`.
+
+
+            See: <https://idpf.org/epub/20/spec/OPF_2.0.1_draft.htm#Section2.2.2>'
+          examples:
+          - Jane Doe
+          - name: Jane Doe
+            role: aut
+          title: Main author
+        language:
+          default: ''
+          description: 'Identifies a language of the intellectual content of the Publication.
+            An OPF Package Document must include at least one instance of this element
+            type, however multiple instances are permitted.
+
+
+            See: See: https://idpf.org/epub/20/spec/OPF_2.0.1_draft.htm#Section2.2.2'
+          examples:
+          - en
+          title: A language of the resource
+          type: string
+        created:
+          anyOf:
+          - type: string
+          - type: integer
+          - type: 'null'
+          default: null
+          description: 'Date of creation, in the format defined by **Date and Time
+            Formats** at http://www.w3.org/TR/NOTE-datetime and by ISO 8601 on which
+            it is based. In particular, dates without times are represented in the
+            form YYYY[-MM[-DD]]: a required 4-digit year, an optional 2-digit month,
+            and if the month is given, an optional 2-digit day of month.
+
+
+            See: <https://idpf.org/epub/20/spec/OPF_2.0.1_draft.htm#Section2.2.7>'
+          examples:
+          - '2024'
+          - 2024-10
+          - '2024-10-03'
+          title: Date of creation
+        identifiers:
+          default: []
+          description: 'Further identifiers for the resource (an ISBN, a DOI, ...),
+            in addition to `book_id`.
+
+
+            See: <https://idpf.org/epub/20/spec/OPF_2.0.1_draft.htm#Section2.2.10>'
+          examples:
+          - - scheme: isbn
+              value: 978-0-575-08626-5
+          items:
+            $ref: '#/components/schemas/Identifier'
+          title: Additional identifiers
+          type: array
+        subjects:
+          default: []
+          description: 'Keywords, key phrases or classification codes describing the
+            topic of the resource.
+
+
+            See: <https://idpf.org/epub/20/spec/OPF_2.0.1_draft.htm#Section2.2.3>'
+          examples:
+          - - Fantasy
+            - Adventure
+          items:
+            type: string
+          title: Subjects
+          type: array
+        description:
+          default: ''
+          description: 'An abstract, a table of contents, or a free-text account of
+            the resource.
+
+
+            See: <https://idpf.org/epub/20/spec/OPF_2.0.1_draft.htm#Section2.2.4>'
+          examples:
+          - A short account of the book.
+          title: Description
+          type: string
+        publisher:
+          default: ''
+          description: 'The entity responsible for making the resource available.
+
+
+            See: <https://idpf.org/epub/20/spec/OPF_2.0.1_draft.htm#Section2.2.5>'
+          examples:
+          - ACME Publishing
+          title: Publisher
+          type: string
+        contributors:
+          default: []
+          description: 'People or organizations whose contribution is secondary to
+            the `author`(s) - editors, illustrators, translators, and so on.
+
+
+            See: <https://idpf.org/epub/20/spec/OPF_2.0.1_draft.htm#Section2.2.6>'
+          examples:
+          - - name: Ed Itor
+              role: edt
+          items:
+            $ref: '#/components/schemas/Contributor'
+          title: Contributors
+          type: array
+        rights:
+          default: []
+          description: 'Information about rights held in and over the resource.
+
+
+            See: <https://idpf.org/epub/20/spec/OPF_2.0.1_draft.htm#Section2.2.15>'
+          examples:
+          - - Copyright (c) 2026 Jane Doe. All rights reserved.
+          items:
+            type: string
+          title: Rights
+          type: array
+        title_separator:
+          default: ' - '
+          description: Separator placed between the title and subtitle wherever the
+            two are shown together.
+          examples:
+          - ' - '
+          - ': '
+          title: Title separator
+          type: string
+        files:
+          default: []
+          description: Files and folders to include in the EPUB in addition to whatever
+            the pages already reference, relative to the manifest's folder. A folder
+            is copied recursively.
+          examples:
+          - - images
+            - styles/fonts/font.otf
+          items:
+            format: path
+            type: string
+          title: Extra files and folders
+          type: array
+          uniqueItems: true
+        pages:
+          description: 'The pages that make up this book, in the order they should
+            appear. A plain string is shorthand for `{type: chapter, source: <string>}`.'
+          examples:
+          - - type: toc
+            - text/ch1.md
+          items:
+            $ref: '#/components/schemas/Page'
+          title: Pages
+          type: array
+      required:
+      - name
+      - pages
+      title: Book
+      type: object
+    BookContent:
+      description: Base model for book content, including pages and other elements.
+      properties:
+        name:
+          description: Used to build this content's own path inside the EPUB (`content/<name>.xhtml`
+            for a generated page, or the folder name for a sub-book). Letters, digits,
+            `.`, `_` and `-` only - not a name made only of dots, so it can never
+            point outside the project.
+          examples:
+          - chapter
+          - part1
+          - my-page
+          pattern: ^\.*[A-Za-z0-9_-][A-Za-z0-9._-]*$
+          title: Technical name
+          type: string
+        toc_title:
+          anyOf:
+          - type: string
+          - type: 'null'
+          default: null
+          description: Optional label to show in the table of contents instead of
+            the default one - a chapter's own first heading, a sub-book's `title`,
+            or as a last resort its technical `name`. Only changes the table of contents
+            entry, not the page's own heading or `<title>`.
+          examples:
+          - Chapter One
+          - Part One
+          title: Table of contents label
+        stylesheets:
+          default: []
+          description: Stylesheets linked from this content. Inherited by nested content
+            unless overridden.
+          examples:
+          - - styles/book.css
+          items:
+            format: path
+            type: string
+          title: Stylesheets
+          type: array
+          uniqueItems: true
+        stylesheets_overrides:
+          default: []
+          description: Stylesheets that replace, rather than add to, whatever this
+            content would otherwise inherit from its parent.
+          examples:
+          - - styles/chapter-only.css
+          items:
+            format: path
+            type: string
+          title: Stylesheet overrides
+          type: array
+          uniqueItems: true
+      required:
+      - name
+      title: BookContent
+      type: object
+    BookId:
+      description: 'Represents ePub `unique-identifier` in ePub OPF `package` as well
+        as main identifier
+
+        in metadata section.
+
+
+        See: <https://idpf.org/epub/20/spec/OPF_2.0.1_draft.htm#Section2.2.10>'
+      properties:
+        scheme:
+          default: uuid
+          description: The scheme attribute names the system or authority that generated
+            or assigned the text contained within the identifier element, for example
+            `ISBN` or `DOI` The values of the scheme attribute are case sensitive
+            only when the particular scheme requires it.
+          examples:
+          - uuid
+          - isbn
+          title: Identifier's opf:scheme attribute.
+          type: string
+        value:
+          anyOf:
+          - type: string
+          - type: 'null'
+          default: null
+          description: A string or number used to uniquely identify the resource.
+            An OPF Package Document must include at least one instance of this element
+            type, however multiple instances are permitted.
+          examples:
+          - d4549bba-fae8-4e19-bccb-3910452733a1
+          - '9780575086265'
+          title: Identifier's unique value.
+        id:
+          default: BookId
+          description: At least one identifier must have an id specified (the value
+            being of the XML 'ID' data type), so it can be referenced from the package
+            unique-identifier attribute.
+          examples:
+          - BookId
+          - any-string-is-ok
+          title: Book identifier
+          type: string
+      title: BookId
+      type: object
+    CalibreMetadata:
+      description: Calibre metadata for sorting and defining book series and book
+        series index.
+      properties:
+        title_sort:
+          default: ''
+          description: Alphabeticaly correct sorting title, for example `The Story
+            Of All of Us` would be sorted as `Story Of All Of Us, The`.
+          examples:
+          - Story Of All Of Us, The
+          title: Sorting title
+          type: string
+        series:
+          default: ''
+          description: ''
+          examples:
+          - Harry Potter
+          title: Book series title
+          type: string
+        series_index:
+          default: 1
+          description: ''
+          examples:
+          - 1
+          - 2
+          - 3
+          title: Index within the book series
+          type: integer
+        author_link_map:
+          default: ''
+          description: ''
+          examples:
+          - '{&quot;Rowlingova, Joanne Kathleen&quot;: &quot;&quot;}'
+          title: Author name link map
+          type: string
+      title: CalibreMetadata
+      type: object
+    Chapter:
+      description: Represents a chapter page of the book.
+      properties:
+        name:
+          default: chapter
+          description: Used to build this content's own path inside the EPUB (`content/<name>.xhtml`
+            for a generated page, or the folder name for a sub-book). Letters, digits,
+            `.`, `_` and `-` only - not a name made only of dots, so it can never
+            point outside the project.
+          examples:
+          - chapter
+          - part1
+          - my-page
+          pattern: ^\.*[A-Za-z0-9_-][A-Za-z0-9._-]*$
+          title: Technical name
+          type: string
+        toc_title:
+          anyOf:
+          - type: string
+          - type: 'null'
+          default: null
+          description: Optional label to show in the table of contents instead of
+            the default one - a chapter's own first heading, a sub-book's `title`,
+            or as a last resort its technical `name`. Only changes the table of contents
+            entry, not the page's own heading or `<title>`.
+          examples:
+          - Chapter One
+          - Part One
+          title: Table of contents label
+        stylesheets:
+          default: []
+          description: Stylesheets linked from this content. Inherited by nested content
+            unless overridden.
+          examples:
+          - - styles/book.css
+          items:
+            format: path
+            type: string
+          title: Stylesheets
+          type: array
+          uniqueItems: true
+        stylesheets_overrides:
+          default: []
+          description: Stylesheets that replace, rather than add to, whatever this
+            content would otherwise inherit from its parent.
+          examples:
+          - - styles/chapter-only.css
+          items:
+            format: path
+            type: string
+          title: Stylesheet overrides
+          type: array
+          uniqueItems: true
+        opf_spine_add:
+          default: true
+          description: 'Whether this page is part of the book''s linear reading order.
+
+
+            See: <https://idpf.org/epub/20/spec/OPF_2.0.1_draft.htm#Section2.4>'
+          examples:
+          - true
+          - false
+          title: Add to the OPF spine
+          type: boolean
+        opf_spine_aux:
+          default: false
+          description: Whether this page is marked `linear="no"` in the spine - present
+            in the book, but not part of the main linear reading order (e.g. a notes
+            or appendix page).
+          examples:
+          - true
+          - false
+          title: Auxiliary spine item
+          type: boolean
+        opf_guide_type:
+          anyOf:
+          - $ref: '#/components/schemas/OpfGuideType'
+          - type: 'null'
+          default: null
+          description: 'The reference `type` this page gets in the OPF guide, used
+            by reading systems to jump straight to a cover, table of contents, etc.
+            `None` means the page is not listed in the guide at all.
+
+
+            See: <https://idpf.org/epub/20/spec/OPF_2.0.1_draft.htm#Section2.6>'
+          examples:
+          - cover
+          - toc
+          - title-page
+          title: OPF guide type
+        opf_guide_title:
+          default: ''
+          description: The human-readable title for this page's entry in the OPF guide.
+          examples:
+          - Cover
+          - Table of Contents
+          title: OPF guide title
+          type: string
+        add_to_toc:
+          default: true
+          description: Whether this page gets its own entry in the table of contents
+            (both the NCX and the TOC page).
+          examples:
+          - true
+          - false
+          title: Add to the table of contents
+          type: boolean
+        custom_template:
+          anyOf:
+          - format: path
+            type: string
+          - type: 'null'
+          default: null
+          description: Path to a Jinja template to render this page with, relative
+            to the manifest's folder, instead of the built-in one for its page type.
+          examples:
+          - templates/my-chapter.xhtml.jinja
+          title: Custom template
+        source:
+          description: Path to the chapter's Markdown source, relative to the manifest's
+            folder. The chapter's file inside the EPUB mirrors this same path (with
+            an `.xhtml` extension), so relative links and images inside the Markdown
+            keep working unchanged.
+          examples:
+          - text/chapter-01.md
+          format: path
+          title: Chapter source file
+          type: string
+        sequence:
+          anyOf:
+          - type: string
+          - type: 'null'
+          default: default
+          description: Reserved for future use in ordering or grouping chapters.
+          examples:
+          - default
+          - '1'
+          - intermezzo
+          title: Chapter sequence
+      required:
+      - source
+      title: Chapter
+      type: object
+    Config:
+      description: The configuration for the md2epub application within Manifest file.
+      properties:
+        include_file:
+          anyOf:
+          - format: path
+            type: string
+          - type: 'null'
+          default: null
+          description: Path to another config file (YAML or JSON) to load first; this
+            manifest's own `config` values then override whatever the included file
+            set.
+          examples:
+          - ../shared-config.yaml
+          title: Included config file
+        includes_files:
+          default: []
+          description: Filled in automatically to track every config file that was
+            included, directly or transitively.
+          examples:
+          - - ../shared-config.yaml
+          items:
+            format: path
+            type: string
+          title: Included config files (resolved)
+          type: array
+        epub:
+          $ref: '#/components/schemas/EpubConfig'
+          default:
+            epub_suffix: .epub
+            html_suffix: .xhtml
+            folders: []
+            files: []
+          description: Basic configuration of the built EPUB file itself.
+          examples:
+          - epub_suffix: .epub
+          title: EPUB configuration
+        parser:
+          $ref: '#/components/schemas/ParserConfig'
+          default:
+            foo: bar
+          description: Reserved for future use.
+          examples:
+          - {}
+          title: Parser configuration
+        markdown:
+          $ref: '#/components/schemas/MarkdownConfig'
+          default:
+            tab_length: 4
+            output_format: xhtml
+            additional_extensions: []
+            extensions_override: []
+            extension_configs:
+              smarty:
+                smart_angled_quotes: true
+                substitutions:
+                  left-double-quote: '&bdquo;'
+                  left-single-quote: '&sbquo;'
+                  right-double-quote: '&ldquo;'
+                  right-single-quote: '&lsquo;'
+            extensions:
+            - attr_list
+            - fenced_code
+            - smarty
+            - tables
+            - md2epub.extensions.vlna
+          description: Configuration for the Markdown-to-XHTML conversion used for
+            every chapter.
+          examples:
+          - tab_length: 4
+          title: Markdown configuration
+      title: Config
+      type: object
+    Contributor:
+      description: 'A party whose contribution to the publication is secondary to
+        those named in creator elements.
+
+
+        See: <https://idpf.org/epub/20/spec/OPF_2.0.1_draft.htm#Section2.2.6>'
+      properties:
+        role:
+          default: ''
+          description: 'Lower-case 3-character long values specifies contributor''s
+            role.
+
+
+            See: <https://idpf.org/epub/20/spec/OPF_2.0.1_draft.htm#Section2.2.6>'
+          examples:
+          - aut
+          - art
+          - edt
+          - ill
+          title: Contributor's role
+          type: string
+        name:
+          default: Anonymous Entity
+          description: Contributor's full name
+          examples:
+          - Rev. Dr. Martin Luther King Jr.
+          title: Contributor's name
+          type: string
+        file_as:
+          default: ''
+          description: 'The `file-as` attribute should be used to specify a normalized
+            form of the contents, suitable for machine processing.
+
+
+            If this is ommited, it will be filled from contributor''s name in format:
+
+
+            `Surname, Name`, for example `Martin Luther King` will be transformed
+            to`King, Martin Luther`.'
+          examples:
+          - King, Martin Luther Jr.
+          title: Normalized form of the contributor's name
+          type: string
+      title: Contributor
+      type: object
+    CoverPage:
+      description: Represents the cover page of the book.
+      properties:
+        name:
+          default: cover
+          description: Used to build this content's own path inside the EPUB (`content/<name>.xhtml`
+            for a generated page, or the folder name for a sub-book). Letters, digits,
+            `.`, `_` and `-` only - not a name made only of dots, so it can never
+            point outside the project.
+          examples:
+          - chapter
+          - part1
+          - my-page
+          pattern: ^\.*[A-Za-z0-9_-][A-Za-z0-9._-]*$
+          title: Technical name
+          type: string
+        toc_title:
+          anyOf:
+          - type: string
+          - type: 'null'
+          default: null
+          description: Optional label to show in the table of contents instead of
+            the default one - a chapter's own first heading, a sub-book's `title`,
+            or as a last resort its technical `name`. Only changes the table of contents
+            entry, not the page's own heading or `<title>`.
+          examples:
+          - Chapter One
+          - Part One
+          title: Table of contents label
+        stylesheets:
+          default: []
+          description: Stylesheets linked from this content. Inherited by nested content
+            unless overridden.
+          examples:
+          - - styles/book.css
+          items:
+            format: path
+            type: string
+          title: Stylesheets
+          type: array
+          uniqueItems: true
+        stylesheets_overrides:
+          default: []
+          description: Stylesheets that replace, rather than add to, whatever this
+            content would otherwise inherit from its parent.
+          examples:
+          - - styles/chapter-only.css
+          items:
+            format: path
+            type: string
+          title: Stylesheet overrides
+          type: array
+          uniqueItems: true
+        opf_spine_add:
+          default: true
+          description: 'Whether this page is part of the book''s linear reading order.
+
+
+            See: <https://idpf.org/epub/20/spec/OPF_2.0.1_draft.htm#Section2.4>'
+          examples:
+          - true
+          - false
+          title: Add to the OPF spine
+          type: boolean
+        opf_spine_aux:
+          default: false
+          description: Whether this page is marked `linear="no"` in the spine - present
+            in the book, but not part of the main linear reading order (e.g. a notes
+            or appendix page).
+          examples:
+          - true
+          - false
+          title: Auxiliary spine item
+          type: boolean
+        opf_guide_type:
+          anyOf:
+          - $ref: '#/components/schemas/OpfGuideType'
+          - type: 'null'
+          default: cover
+          description: 'The reference `type` this page gets in the OPF guide, used
+            by reading systems to jump straight to a cover, table of contents, etc.
+            `None` means the page is not listed in the guide at all.
+
+
+            See: <https://idpf.org/epub/20/spec/OPF_2.0.1_draft.htm#Section2.6>'
+          examples:
+          - cover
+          - toc
+          - title-page
+          title: OPF guide type
+        opf_guide_title:
+          default: Cover
+          description: The human-readable title for this page's entry in the OPF guide.
+          examples:
+          - Cover
+          - Table of Contents
+          title: OPF guide title
+          type: string
+        add_to_toc:
+          default: false
+          description: Whether this page gets its own entry in the table of contents
+            (both the NCX and the TOC page).
+          examples:
+          - true
+          - false
+          title: Add to the table of contents
+          type: boolean
+        custom_template:
+          anyOf:
+          - format: path
+            type: string
+          - type: 'null'
+          default: null
+          description: Path to a Jinja template to render this page with, relative
+            to the manifest's folder, instead of the built-in one for its page type.
+          examples:
+          - templates/my-chapter.xhtml.jinja
+          title: Custom template
+        cover_image:
+          default: images/cover.jpg
+          description: Path to the cover image, relative to the manifest's folder.
+          examples:
+          - images/cover.jpg
+          format: path
+          title: Cover image
+          type: string
+      title: CoverPage
+      type: object
+    CustomPage:
+      description: 'Custom page type for user-defined content. This page type allows
+        for the inclusion of custom
+
+        content in the EPUB, with the option to specify a custom template.'
+      properties:
+        name:
+          description: Used to build this content's own path inside the EPUB (`content/<name>.xhtml`
+            for a generated page, or the folder name for a sub-book). Letters, digits,
+            `.`, `_` and `-` only - not a name made only of dots, so it can never
+            point outside the project.
+          examples:
+          - chapter
+          - part1
+          - my-page
+          pattern: ^\.*[A-Za-z0-9_-][A-Za-z0-9._-]*$
+          title: Technical name
+          type: string
+        toc_title:
+          anyOf:
+          - type: string
+          - type: 'null'
+          default: null
+          description: Optional label to show in the table of contents instead of
+            the default one - a chapter's own first heading, a sub-book's `title`,
+            or as a last resort its technical `name`. Only changes the table of contents
+            entry, not the page's own heading or `<title>`.
+          examples:
+          - Chapter One
+          - Part One
+          title: Table of contents label
+        stylesheets:
+          default: []
+          description: Stylesheets linked from this content. Inherited by nested content
+            unless overridden.
+          examples:
+          - - styles/book.css
+          items:
+            format: path
+            type: string
+          title: Stylesheets
+          type: array
+          uniqueItems: true
+        stylesheets_overrides:
+          default: []
+          description: Stylesheets that replace, rather than add to, whatever this
+            content would otherwise inherit from its parent.
+          examples:
+          - - styles/chapter-only.css
+          items:
+            format: path
+            type: string
+          title: Stylesheet overrides
+          type: array
+          uniqueItems: true
+        opf_spine_add:
+          default: false
+          description: 'Whether this page is part of the book''s linear reading order.
+
+
+            See: <https://idpf.org/epub/20/spec/OPF_2.0.1_draft.htm#Section2.4>'
+          examples:
+          - true
+          - false
+          title: Add to the OPF spine
+          type: boolean
+        opf_spine_aux:
+          default: false
+          description: Whether this page is marked `linear="no"` in the spine - present
+            in the book, but not part of the main linear reading order (e.g. a notes
+            or appendix page).
+          examples:
+          - true
+          - false
+          title: Auxiliary spine item
+          type: boolean
+        opf_guide_type:
+          anyOf:
+          - $ref: '#/components/schemas/OpfGuideType'
+          - type: 'null'
+          default: null
+          description: 'The reference `type` this page gets in the OPF guide, used
+            by reading systems to jump straight to a cover, table of contents, etc.
+            `None` means the page is not listed in the guide at all.
+
+
+            See: <https://idpf.org/epub/20/spec/OPF_2.0.1_draft.htm#Section2.6>'
+          examples:
+          - cover
+          - toc
+          - title-page
+          title: OPF guide type
+        opf_guide_title:
+          default: ''
+          description: The human-readable title for this page's entry in the OPF guide.
+          examples:
+          - Cover
+          - Table of Contents
+          title: OPF guide title
+          type: string
+        add_to_toc:
+          default: false
+          description: Whether this page gets its own entry in the table of contents
+            (both the NCX and the TOC page).
+          examples:
+          - true
+          - false
+          title: Add to the table of contents
+          type: boolean
+        custom_template:
+          anyOf:
+          - format: path
+            type: string
+          - type: 'null'
+          default: null
+          description: Path to a Jinja template to render this page with, relative
+            to the manifest's folder, instead of the built-in one for its page type.
+          examples:
+          - templates/my-chapter.xhtml.jinja
+          title: Custom template
+        template:
+          description: Path to the Jinja template that renders this page, relative
+            to the manifest's folder.
+          examples:
+          - templates/my-page.xhtml.jinja
+          format: path
+          title: Template
+          type: string
+        sources:
+          additionalProperties:
+            format: path
+            type: string
+          default: {}
+          description: Named source files made available to the template, keyed by
+            whatever name the template expects.
+          examples:
+          - intro: content/intro.md
+          title: Named sources
+          type: object
+        values:
+          additionalProperties: true
+          default: {}
+          description: Arbitrary values passed straight through to the template, keyed
+            by whatever name it expects.
+          examples:
+          - greeting: Welcome!
+          title: Template values
+          type: object
+      required:
+      - name
+      - template
+      title: CustomPage
+      type: object
+    EpubConfig:
+      description: Application configuration for the Md2ePub from Manifest file.
+      properties:
+        epub_suffix:
+          default: .epub
+          description: The suffix of the built output file. An EPUB is a zip file,
+            so `.zip` is accepted too - useful for inspecting the raw contents with
+            a regular archive tool.
+          enum:
+          - .epub
+          - .zip
+          examples:
+          - .epub
+          - .zip
+          title: Output file suffix
+          type: string
+        html_suffix:
+          default: .xhtml
+          description: The suffix used for every generated content file inside the
+            EPUB.
+          examples:
+          - .xhtml
+          title: HTML file suffix
+          type: string
+        folders:
+          default: []
+          description: Folders to include in the built EPUB in addition to whatever
+            the manifest's pages reference.
+          examples:
+          - - styles
+          items:
+            format: path
+            type: string
+          title: Extra folders
+          type: array
+        files:
+          default: []
+          description: Files to include in the built EPUB in addition to whatever
+            the manifest's pages reference.
+          examples:
+          - - images/favicon.png
+          items:
+            format: path
+            type: string
+          title: Extra files
+          type: array
+      title: EpubConfig
+      type: object
+    Identifier:
+      description: 'Represents identifier in ePub metadata section.
+
+
+        Value of the identifier should be unique.
+
+        Scheme is type of identifier (uuid, isbn, ...).
+
+
+        See: <https://idpf.org/epub/20/spec/OPF_2.0.1_draft.htm#Section2.2.10>'
+      properties:
+        scheme:
+          default: uuid
+          description: The scheme attribute names the system or authority that generated
+            or assigned the text contained within the identifier element, for example
+            `ISBN` or `DOI` The values of the scheme attribute are case sensitive
+            only when the particular scheme requires it.
+          examples:
+          - uuid
+          - isbn
+          title: Identifier's opf:scheme attribute.
+          type: string
+        value:
+          description: A string or number used to uniquely identify the resource.
+            An OPF Package Document must include at least one instance of this element
+            type, however multiple instances are permitted.
+          examples:
+          - d4549bba-fae8-4e19-bccb-3910452733a1
+          - '9780575086265'
+          title: Identifier's unique value.
+          type: string
+      title: Identifier
+      type: object
+    Manifest:
+      properties:
+        file:
+          description: Filled in automatically from the path the manifest was loaded
+            from; not set by the manifest itself.
+          examples:
+          - book/manifest.yaml
+          format: path
+          title: Manifest file path
+          type: string
+        title:
+          description: 'An `<dc:title>` element. An OPF Package Document must include
+            at least one instance of this element type, however multiple instances
+            are permitted.
+
+
+            See: https://idpf.org/epub/20/spec/OPF_2.0.1_draft.htm#Section2.2.1'
+          examples:
+          - Alice in Wonderland
+          title: The title of the publication
+          type: string
+        supertitle:
+          default: ''
+          description: The supertitle of the publication. This is not really in OPF
+            document or in specifications and maybe, this will be removed later.
+          examples:
+          - First book
+          title: The supertitle of the publication
+          type: string
+        subtitle:
+          default: ''
+          description: The subtitle of the publication. This is not really in OPF
+            document or in specifications and maybe, this will be removed later.
+          examples:
+          - A tale of wonderland
+          title: The subtitle of the publication
+          type: string
+        author:
+          $ref: '#/components/schemas/Author'
+          description: 'The book''s main author. A plain string is shorthand for `{name:
+            <string>}`.
+
+
+            See: <https://idpf.org/epub/20/spec/OPF_2.0.1_draft.htm#Section2.2.2>'
+          examples:
+          - Jane Doe
+          - name: Jane Doe
+            role: aut
+          title: Main author
+        additional_authors:
+          default: []
+          description: Co-authors listed after the main `author`, in the same shorthand-or-object
+            form.
+          examples:
+          - - Jane Doe
+            - John Smith
+          items:
+            $ref: '#/components/schemas/Author'
+          title: Additional authors
+          type: array
+        language:
+          default: en
+          description: 'Identifies a language of the intellectual content of the Publication.
+            An OPF Package Document must include at least one instance of this element
+            type, however multiple instances are permitted.
+
+
+            See: See: https://idpf.org/epub/20/spec/OPF_2.0.1_draft.htm#Section2.2.2'
+          examples:
+          - en
+          title: A language of the resource
+          type: string
+        created:
+          anyOf:
+          - type: string
+          - type: integer
+          - type: 'null'
+          default: null
+          description: 'Date of creation, in the format defined by **Date and Time
+            Formats** at http://www.w3.org/TR/NOTE-datetime and by ISO 8601 on which
+            it is based. In particular, dates without times are represented in the
+            form YYYY[-MM[-DD]]: a required 4-digit year, an optional 2-digit month,
+            and if the month is given, an optional 2-digit day of month.
+
+
+            See: <https://idpf.org/epub/20/spec/OPF_2.0.1_draft.htm#Section2.2.7>'
+          examples:
+          - '2024'
+          - 2024-10
+          - '2024-10-03'
+          title: Date of creation
+        book_id:
+          $ref: '#/components/schemas/BookId'
+          description: 'The book''s unique identifier. Left unset, a stable one is
+            derived from the title, author, publication date and language - the same
+            manifest always gets the same identifier, so rebuilding it doesn''t look
+            like a new book to a reading system.
+
+
+            See: <https://idpf.org/epub/20/spec/OPF_2.0.1_draft.htm#Section2.2.10>'
+          examples:
+          - scheme: isbn
+            value: 978-0-575-08626-5
+          title: Book identifier
+        published:
+          anyOf:
+          - type: string
+          - type: integer
+          - type: 'null'
+          default: null
+          description: 'Date of publication of the book with same rules and formats
+            as `created`.
+
+
+            See: <https://idpf.org/epub/20/spec/OPF_2.0.1_draft.htm#Section2.2.7>'
+          examples:
+          - '2024'
+          - 2024-10
+          - '2024-10-03'
+          title: Date of publication
+        modified:
+          anyOf:
+          - type: string
+          - type: integer
+          - type: 'null'
+          default: null
+          description: 'Date of modification of the book with same rules and formats
+            as `created`.
+
+
+            See: <https://idpf.org/epub/20/spec/OPF_2.0.1_draft.htm#Section2.2.7>'
+          examples:
+          - '2024'
+          - 2024-10
+          - '2024-10-03'
+          title: Date of modification
+        format:
+          default: application/epub+zip
+          description: 'The file format, physical medium, or dimensions of the resource.
+
+
+            See: <https://idpf.org/epub/20/spec/OPF_2.0.1_draft.htm#Section2.2.9>'
+          examples:
+          - application/epub+zip
+          title: Format
+          type: string
+        identifiers:
+          default: []
+          description: 'Further identifiers for the resource (an ISBN, a DOI, ...),
+            in addition to `book_id`.
+
+
+            See: <https://idpf.org/epub/20/spec/OPF_2.0.1_draft.htm#Section2.2.10>'
+          examples:
+          - - scheme: isbn
+              value: 978-0-575-08626-5
+          items:
+            $ref: '#/components/schemas/Identifier'
+          title: Additional identifiers
+          type: array
+        subjects:
+          default: []
+          description: 'Keywords, key phrases or classification codes describing the
+            topic of the resource.
+
+
+            See: <https://idpf.org/epub/20/spec/OPF_2.0.1_draft.htm#Section2.2.3>'
+          examples:
+          - - Fantasy
+            - Adventure
+          items:
+            type: string
+          title: Subjects
+          type: array
+        description:
+          default: ''
+          description: 'An abstract, a table of contents, or a free-text account of
+            the resource.
+
+
+            See: <https://idpf.org/epub/20/spec/OPF_2.0.1_draft.htm#Section2.2.4>'
+          examples:
+          - A short account of the book.
+          title: Description
+          type: string
+        publisher:
+          default: ''
+          description: 'The entity responsible for making the resource available.
+
+
+            See: <https://idpf.org/epub/20/spec/OPF_2.0.1_draft.htm#Section2.2.5>'
+          examples:
+          - ACME Publishing
+          title: Publisher
+          type: string
+        contributors:
+          default: []
+          description: 'People or organizations whose contribution is secondary to
+            the `author`(s) - editors, illustrators, translators, and so on.
+
+
+            See: <https://idpf.org/epub/20/spec/OPF_2.0.1_draft.htm#Section2.2.6>'
+          examples:
+          - - name: Ed Itor
+              role: edt
+          items:
+            $ref: '#/components/schemas/Contributor'
+          title: Contributors
+          type: array
+        rights:
+          default: []
+          description: 'Information about rights held in and over the resource.
+
+
+            See: <https://idpf.org/epub/20/spec/OPF_2.0.1_draft.htm#Section2.2.15>'
+          examples:
+          - - Copyright (c) 2026 Jane Doe. All rights reserved.
+          items:
+            type: string
+          title: Rights
+          type: array
+        calibre:
+          $ref: '#/components/schemas/CalibreMetadata'
+          description: Metadata read by Calibre for sorting and for defining a book
+            series and its index within it.
+          examples:
+          - series: Books of Trinity
+            series_index: 1
+          title: Calibre metadata
+        book:
+          $ref: '#/components/schemas/Book'
+          description: The book's page structure. All of the manifest's own metadata
+            above is copied onto it automatically, so it rarely needs to be set here
+            directly.
+          examples:
+          - name: content
+            pages:
+            - text/ch1.md
+          title: Book structure
+        config:
+          $ref: '#/components/schemas/Config'
+          description: Configuration for the EPUB output, the (currently unused) parser,
+            and the Markdown conversion.
+          examples:
+          - markdown:
+              tab_length: 4
+          title: Configuration
+      required:
+      - file
+      - title
+      - book
+      title: Manifest
+      type: object
+    MarkdownConfig:
+      description: Configuration for the Markdown parser.
+      properties:
+        tab_length:
+          default: 4
+          description: The number of spaces a tab in the Markdown source is expanded
+            to.
+          examples:
+          - 4
+          title: Tab length
+          type: integer
+        output_format:
+          default: xhtml
+          description: The output format Python-Markdown itself renders to, before
+            md2epub's own postprocessing.
+          enum:
+          - html
+          - xhtml
+          examples:
+          - xhtml
+          - html
+          title: Markdown output format
+          type: string
+        additional_extensions:
+          default: []
+          description: Extensions to use together with md2epub's own defaults. Only
+            Markdown's built-in extensions and `md2epub.extensions.*` are allowed
+            unless the build explicitly opted in to trust the manifest with `--trust-extensions`
+            - a manifest is untrusted input, and an extension is a Python module Markdown
+            will import and run.
+          examples:
+          - - toc
+            - md2epub.extensions.vlna
+          items:
+            type: string
+          title: Additional Markdown extensions
+          type: array
+        extensions_override:
+          default: []
+          description: Replace md2epub's default extension list entirely instead of
+            adding to it.
+          examples:
+          - - fenced_code
+            - tables
+          items:
+            type: string
+          title: Markdown extensions override
+          type: array
+        extension_configs:
+          additionalProperties: true
+          default:
+            smarty:
+              smart_angled_quotes: true
+              substitutions:
+                left-double-quote: '&bdquo;'
+                left-single-quote: '&sbquo;'
+                right-double-quote: '&ldquo;'
+                right-single-quote: '&lsquo;'
+          description: Per-extension configuration, passed straight through to Python-Markdown.
+          examples:
+          - toc:
+              permalink: true
+          title: Markdown extension configuration
+          type: object
+      title: MarkdownConfig
+      type: object
+    OpfGuideType:
+      description: Type of guide entry in the OPF file.
+      enum:
+      - cover
+      - title-page
+      - toc
+      - index
+      - loi
+      - lot
+      - notes
+      - preface
+      - text
+      title: OpfGuideType
+      type: string
+    Page:
+      description: Base model for a page in the book, including type, template, and
+        other attributes.
+      properties:
+        name:
+          description: Used to build this content's own path inside the EPUB (`content/<name>.xhtml`
+            for a generated page, or the folder name for a sub-book). Letters, digits,
+            `.`, `_` and `-` only - not a name made only of dots, so it can never
+            point outside the project.
+          examples:
+          - chapter
+          - part1
+          - my-page
+          pattern: ^\.*[A-Za-z0-9_-][A-Za-z0-9._-]*$
+          title: Technical name
+          type: string
+        toc_title:
+          anyOf:
+          - type: string
+          - type: 'null'
+          default: null
+          description: Optional label to show in the table of contents instead of
+            the default one - a chapter's own first heading, a sub-book's `title`,
+            or as a last resort its technical `name`. Only changes the table of contents
+            entry, not the page's own heading or `<title>`.
+          examples:
+          - Chapter One
+          - Part One
+          title: Table of contents label
+        stylesheets:
+          default: []
+          description: Stylesheets linked from this content. Inherited by nested content
+            unless overridden.
+          examples:
+          - - styles/book.css
+          items:
+            format: path
+            type: string
+          title: Stylesheets
+          type: array
+          uniqueItems: true
+        stylesheets_overrides:
+          default: []
+          description: Stylesheets that replace, rather than add to, whatever this
+            content would otherwise inherit from its parent.
+          examples:
+          - - styles/chapter-only.css
+          items:
+            format: path
+            type: string
+          title: Stylesheet overrides
+          type: array
+          uniqueItems: true
+        opf_spine_add:
+          default: false
+          description: 'Whether this page is part of the book''s linear reading order.
+
+
+            See: <https://idpf.org/epub/20/spec/OPF_2.0.1_draft.htm#Section2.4>'
+          examples:
+          - true
+          - false
+          title: Add to the OPF spine
+          type: boolean
+        opf_spine_aux:
+          default: false
+          description: Whether this page is marked `linear="no"` in the spine - present
+            in the book, but not part of the main linear reading order (e.g. a notes
+            or appendix page).
+          examples:
+          - true
+          - false
+          title: Auxiliary spine item
+          type: boolean
+        opf_guide_type:
+          anyOf:
+          - $ref: '#/components/schemas/OpfGuideType'
+          - type: 'null'
+          default: null
+          description: 'The reference `type` this page gets in the OPF guide, used
+            by reading systems to jump straight to a cover, table of contents, etc.
+            `None` means the page is not listed in the guide at all.
+
+
+            See: <https://idpf.org/epub/20/spec/OPF_2.0.1_draft.htm#Section2.6>'
+          examples:
+          - cover
+          - toc
+          - title-page
+          title: OPF guide type
+        opf_guide_title:
+          default: ''
+          description: The human-readable title for this page's entry in the OPF guide.
+          examples:
+          - Cover
+          - Table of Contents
+          title: OPF guide title
+          type: string
+        add_to_toc:
+          default: false
+          description: Whether this page gets its own entry in the table of contents
+            (both the NCX and the TOC page).
+          examples:
+          - true
+          - false
+          title: Add to the table of contents
+          type: boolean
+        custom_template:
+          anyOf:
+          - format: path
+            type: string
+          - type: 'null'
+          default: null
+          description: Path to a Jinja template to render this page with, relative
+            to the manifest's folder, instead of the built-in one for its page type.
+          examples:
+          - templates/my-chapter.xhtml.jinja
+          title: Custom template
+      required:
+      - name
+      title: Page
+      type: object
+    ParserConfig:
+      properties:
+        foo:
+          default: bar
+          description: Placeholder - no parser-level configuration exists yet.
+          examples:
+          - bar
+          title: Reserved
+          type: string
+      title: ParserConfig
+      type: object
+    SubBook:
+      description: 'Represents a sub-book or part of the book. This page type is used
+        to group chapters and other
+
+        content into a logical section of the book. It can contain its own metadata,
+        pages, and
+
+        settings, allowing for the creation of complex book structures within a single
+        EPUB file.'
+      properties:
+        name:
+          default: subbook
+          description: Used to build this content's own path inside the EPUB (`content/<name>.xhtml`
+            for a generated page, or the folder name for a sub-book). Letters, digits,
+            `.`, `_` and `-` only - not a name made only of dots, so it can never
+            point outside the project.
+          examples:
+          - chapter
+          - part1
+          - my-page
+          pattern: ^\.*[A-Za-z0-9_-][A-Za-z0-9._-]*$
+          title: Technical name
+          type: string
+        toc_title:
+          anyOf:
+          - type: string
+          - type: 'null'
+          default: null
+          description: Optional label to show in the table of contents instead of
+            the default one - a chapter's own first heading, a sub-book's `title`,
+            or as a last resort its technical `name`. Only changes the table of contents
+            entry, not the page's own heading or `<title>`.
+          examples:
+          - Chapter One
+          - Part One
+          title: Table of contents label
+        stylesheets:
+          default: []
+          description: Stylesheets linked from this content. Inherited by nested content
+            unless overridden.
+          examples:
+          - - styles/book.css
+          items:
+            format: path
+            type: string
+          title: Stylesheets
+          type: array
+          uniqueItems: true
+        stylesheets_overrides:
+          default: []
+          description: Stylesheets that replace, rather than add to, whatever this
+            content would otherwise inherit from its parent.
+          examples:
+          - - styles/chapter-only.css
+          items:
+            format: path
+            type: string
+          title: Stylesheet overrides
+          type: array
+          uniqueItems: true
+        opf_spine_add:
+          default: false
+          description: 'Whether this page is part of the book''s linear reading order.
+
+
+            See: <https://idpf.org/epub/20/spec/OPF_2.0.1_draft.htm#Section2.4>'
+          examples:
+          - true
+          - false
+          title: Add to the OPF spine
+          type: boolean
+        opf_spine_aux:
+          default: false
+          description: Whether this page is marked `linear="no"` in the spine - present
+            in the book, but not part of the main linear reading order (e.g. a notes
+            or appendix page).
+          examples:
+          - true
+          - false
+          title: Auxiliary spine item
+          type: boolean
+        opf_guide_type:
+          anyOf:
+          - $ref: '#/components/schemas/OpfGuideType'
+          - type: 'null'
+          default: null
+          description: 'The reference `type` this page gets in the OPF guide, used
+            by reading systems to jump straight to a cover, table of contents, etc.
+            `None` means the page is not listed in the guide at all.
+
+
+            See: <https://idpf.org/epub/20/spec/OPF_2.0.1_draft.htm#Section2.6>'
+          examples:
+          - cover
+          - toc
+          - title-page
+          title: OPF guide type
+        opf_guide_title:
+          default: ''
+          description: The human-readable title for this page's entry in the OPF guide.
+          examples:
+          - Cover
+          - Table of Contents
+          title: OPF guide title
+          type: string
+        add_to_toc:
+          default: false
+          description: Whether this page gets its own entry in the table of contents
+            (both the NCX and the TOC page).
+          examples:
+          - true
+          - false
+          title: Add to the table of contents
+          type: boolean
+        custom_template:
+          anyOf:
+          - format: path
+            type: string
+          - type: 'null'
+          default: null
+          description: Path to a Jinja template to render this page with, relative
+            to the manifest's folder, instead of the built-in one for its page type.
+          examples:
+          - templates/my-chapter.xhtml.jinja
+          title: Custom template
+        book:
+          $ref: '#/components/schemas/Book'
+          description: The nested book this page represents. It gets its own table
+            of contents and its pages live under their own folder, but it shares the
+            root book's metadata unless overridden.
+          examples:
+          - name: part1
+            pages:
+            - text/ch1.md
+            title: Part One
+          title: Sub-book
+      required:
+      - book
+      title: SubBook
+      type: object
+    TitlePage:
+      description: Represents the title page of the book.
+      properties:
+        name:
+          default: title
+          description: Used to build this content's own path inside the EPUB (`content/<name>.xhtml`
+            for a generated page, or the folder name for a sub-book). Letters, digits,
+            `.`, `_` and `-` only - not a name made only of dots, so it can never
+            point outside the project.
+          examples:
+          - chapter
+          - part1
+          - my-page
+          pattern: ^\.*[A-Za-z0-9_-][A-Za-z0-9._-]*$
+          title: Technical name
+          type: string
+        toc_title:
+          anyOf:
+          - type: string
+          - type: 'null'
+          default: null
+          description: Optional label to show in the table of contents instead of
+            the default one - a chapter's own first heading, a sub-book's `title`,
+            or as a last resort its technical `name`. Only changes the table of contents
+            entry, not the page's own heading or `<title>`.
+          examples:
+          - Chapter One
+          - Part One
+          title: Table of contents label
+        stylesheets:
+          default: []
+          description: Stylesheets linked from this content. Inherited by nested content
+            unless overridden.
+          examples:
+          - - styles/book.css
+          items:
+            format: path
+            type: string
+          title: Stylesheets
+          type: array
+          uniqueItems: true
+        stylesheets_overrides:
+          default: []
+          description: Stylesheets that replace, rather than add to, whatever this
+            content would otherwise inherit from its parent.
+          examples:
+          - - styles/chapter-only.css
+          items:
+            format: path
+            type: string
+          title: Stylesheet overrides
+          type: array
+          uniqueItems: true
+        opf_spine_add:
+          default: true
+          description: 'Whether this page is part of the book''s linear reading order.
+
+
+            See: <https://idpf.org/epub/20/spec/OPF_2.0.1_draft.htm#Section2.4>'
+          examples:
+          - true
+          - false
+          title: Add to the OPF spine
+          type: boolean
+        opf_spine_aux:
+          default: false
+          description: Whether this page is marked `linear="no"` in the spine - present
+            in the book, but not part of the main linear reading order (e.g. a notes
+            or appendix page).
+          examples:
+          - true
+          - false
+          title: Auxiliary spine item
+          type: boolean
+        opf_guide_type:
+          anyOf:
+          - $ref: '#/components/schemas/OpfGuideType'
+          - type: 'null'
+          default: title-page
+          description: 'The reference `type` this page gets in the OPF guide, used
+            by reading systems to jump straight to a cover, table of contents, etc.
+            `None` means the page is not listed in the guide at all.
+
+
+            See: <https://idpf.org/epub/20/spec/OPF_2.0.1_draft.htm#Section2.6>'
+          examples:
+          - cover
+          - toc
+          - title-page
+          title: OPF guide type
+        opf_guide_title:
+          default: Title
+          description: The human-readable title for this page's entry in the OPF guide.
+          examples:
+          - Cover
+          - Table of Contents
+          title: OPF guide title
+          type: string
+        add_to_toc:
+          default: false
+          description: Whether this page gets its own entry in the table of contents
+            (both the NCX and the TOC page).
+          examples:
+          - true
+          - false
+          title: Add to the table of contents
+          type: boolean
+        custom_template:
+          anyOf:
+          - format: path
+            type: string
+          - type: 'null'
+          default: null
+          description: Path to a Jinja template to render this page with, relative
+            to the manifest's folder, instead of the built-in one for its page type.
+          examples:
+          - templates/my-chapter.xhtml.jinja
+          title: Custom template
+        images:
+          default: []
+          description: Images shown on the title page, in order, above the book's
+            metadata.
+          examples:
+          - - images/logo.png
+          items:
+            format: path
+            type: string
+          title: Title page images
+          type: array
+        render_title:
+          default: true
+          description: Whether the title page shows the book's title, subtitle and
+            author.
+          examples:
+          - true
+          - false
+          title: Render the title
+          type: boolean
+        render_metadata:
+          default: true
+          description: Whether the title page shows the book's publisher, description,
+            rights and identifiers.
+          examples:
+          - true
+          - false
+          title: Render metadata
+          type: boolean
+        additional_content:
+          anyOf:
+          - format: path
+            type: string
+          - type: 'null'
+          default: null
+          description: Path to a Markdown file whose rendered content is appended
+            to the title page, if given.
+          examples:
+          - content/title-foreword.md
+          title: Additional content
+      title: TitlePage
+      type: object
+    TocPage:
+      description: Represents the table of contents page of the book.
+      properties:
+        name:
+          default: toc
+          description: Used to build this content's own path inside the EPUB (`content/<name>.xhtml`
+            for a generated page, or the folder name for a sub-book). Letters, digits,
+            `.`, `_` and `-` only - not a name made only of dots, so it can never
+            point outside the project.
+          examples:
+          - chapter
+          - part1
+          - my-page
+          pattern: ^\.*[A-Za-z0-9_-][A-Za-z0-9._-]*$
+          title: Technical name
+          type: string
+        toc_title:
+          anyOf:
+          - type: string
+          - type: 'null'
+          default: null
+          description: Optional label to show in the table of contents instead of
+            the default one - a chapter's own first heading, a sub-book's `title`,
+            or as a last resort its technical `name`. Only changes the table of contents
+            entry, not the page's own heading or `<title>`.
+          examples:
+          - Chapter One
+          - Part One
+          title: Table of contents label
+        stylesheets:
+          default: []
+          description: Stylesheets linked from this content. Inherited by nested content
+            unless overridden.
+          examples:
+          - - styles/book.css
+          items:
+            format: path
+            type: string
+          title: Stylesheets
+          type: array
+          uniqueItems: true
+        stylesheets_overrides:
+          default: []
+          description: Stylesheets that replace, rather than add to, whatever this
+            content would otherwise inherit from its parent.
+          examples:
+          - - styles/chapter-only.css
+          items:
+            format: path
+            type: string
+          title: Stylesheet overrides
+          type: array
+          uniqueItems: true
+        opf_spine_add:
+          default: true
+          description: 'Whether this page is part of the book''s linear reading order.
+
+
+            See: <https://idpf.org/epub/20/spec/OPF_2.0.1_draft.htm#Section2.4>'
+          examples:
+          - true
+          - false
+          title: Add to the OPF spine
+          type: boolean
+        opf_spine_aux:
+          default: false
+          description: Whether this page is marked `linear="no"` in the spine - present
+            in the book, but not part of the main linear reading order (e.g. a notes
+            or appendix page).
+          examples:
+          - true
+          - false
+          title: Auxiliary spine item
+          type: boolean
+        opf_guide_type:
+          anyOf:
+          - $ref: '#/components/schemas/OpfGuideType'
+          - type: 'null'
+          default: toc
+          description: 'The reference `type` this page gets in the OPF guide, used
+            by reading systems to jump straight to a cover, table of contents, etc.
+            `None` means the page is not listed in the guide at all.
+
+
+            See: <https://idpf.org/epub/20/spec/OPF_2.0.1_draft.htm#Section2.6>'
+          examples:
+          - cover
+          - toc
+          - title-page
+          title: OPF guide type
+        opf_guide_title:
+          default: Table of Contents
+          description: The human-readable title for this page's entry in the OPF guide.
+          examples:
+          - Cover
+          - Table of Contents
+          title: OPF guide title
+          type: string
+        add_to_toc:
+          default: false
+          description: Whether this page gets its own entry in the table of contents
+            (both the NCX and the TOC page).
+          examples:
+          - true
+          - false
+          title: Add to the table of contents
+          type: boolean
+        custom_template:
+          anyOf:
+          - format: path
+            type: string
+          - type: 'null'
+          default: null
+          description: Path to a Jinja template to render this page with, relative
+            to the manifest's folder, instead of the built-in one for its page type.
+          examples:
+          - templates/my-chapter.xhtml.jinja
+          title: Custom template
+        title:
+          default: Table of Contents
+          description: The heading shown at the top of the table of contents page
+            itself.
+          examples:
+          - Table of Contents
+          - Obsah
+          title: Table of contents heading
+          type: string
+        render_links:
+          default: true
+          description: Whether table of contents entries are rendered as links to
+            their target page.
+          examples:
+          - true
+          - false
+          title: Render links
+          type: boolean
+        render_depth:
+          default: 2
+          description: How many nesting levels of the table of contents are rendered
+            (sub-books count as one level).
+          examples:
+          - 1
+          - 2
+          - 3
+          title: Table of contents depth
+          type: integer
+      title: TocPage
+      type: object
