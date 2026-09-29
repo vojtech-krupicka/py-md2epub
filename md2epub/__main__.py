@@ -233,20 +233,34 @@ def build_command(
     )
 
 
+# region Init command
+
+init_output_option = click.option(
+    "-o",
+    "--output-dir",
+    type=click.Path(file_okay=False, writable=True, resolve_path=True, path_type=Path),
+    default=".",
+    show_default=True,
+    help="Directory to init epub file structure with manifest.yaml into (must be an empty directory, created if missing).",
+)
+
+
 @cli.command(name="init")
 @common_options
+@init_output_option
+@catch_exception(handle=(Exception))
 @md2epub_command()
-def init_command(**kwargs):
+def init_command(output_dir: Path):
     """
     Initialize a new md2epub project.
 
     Creates a starter manifest plus the folder structure it expects (chapters, images, styles),
     so `md2epub build` has something to build right away.
-
-    Not implemented yet.
     """
 
-    print("md2epub init: not implemented yet.")
+    from md2epub.commands import init
+
+    return init.run(output_dir)
 
 
 # region Unpack command

@@ -69,7 +69,7 @@ class TestUnpackCommand:
         out.mkdir()
         (out / "existing.txt").write_text("already here")
 
-        with pytest.raises(ValueError, match="not empty"):
+        with pytest.raises(RuntimeError, match="not empty"):
             unpack.run(epub_path, out)
 
 

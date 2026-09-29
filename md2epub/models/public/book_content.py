@@ -5,7 +5,7 @@ from enum import StrEnum, auto
 from pathlib import Path
 from typing import Annotated, Any, ClassVar
 
-from pydantic import BaseModel, Field, computed_field, field_validator
+from pydantic import BaseModel, Field, SerializeAsAny, computed_field, field_validator
 
 from md2epub import __version__
 from md2epub.core.environment import get_environment
@@ -156,7 +156,7 @@ class Book(BookContent, validate_assignment=True):
     config: Annotated[Config, Field(default_factory=Config, **docs.book_config)]
     """Config model for markdown converter."""
 
-    pages: Annotated[list[Page], Field(**docs.book_pages)]
+    pages: Annotated[list[SerializeAsAny[Page]], Field(**docs.book_pages)]
     """List of pages in order to render in ePub."""
 
     @computed_field

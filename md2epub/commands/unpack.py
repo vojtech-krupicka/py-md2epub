@@ -53,6 +53,6 @@ def resolve_output(path: Path) -> Path:
 
     path.mkdir(parents=True, exist_ok=True)
     if any(path.iterdir()):
-        raise ValueError(f"Output directory '{path}' is not empty!")
+        raise RuntimeError(f"Output directory '{path}' is not empty!")
 
     return path
