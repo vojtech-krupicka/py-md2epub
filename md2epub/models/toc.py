@@ -4,8 +4,8 @@ from pathlib import Path
 
 from pydantic import BaseModel
 
-from md2epub.models.public.page import TocPage
-from md2epub.types.epub_content import HtmlFile
+from md2epub.models.epub_content import HtmlFile
+from md2epub.models.public.pages import TocPage
 
 
 class TocItem(BaseModel):

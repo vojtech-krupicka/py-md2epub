@@ -6,8 +6,8 @@ from lxml import html as ehtml
 from markdown import Markdown
 
 from md2epub.core.environment import get_environment
+from md2epub.models.public.book_content import Book
 from md2epub.models.public.config import MarkdownConfig
-from md2epub.models.public.manifest import Manifest
 from md2epub.utils.markdown_extensions import assert_trusted_extensions
 from md2epub.utils.sanitize import sanitize_html
 from md2epub.utils.utils import safe_join
@@ -40,10 +40,15 @@ class ContentCreator:
 
     URI_RE = re.compile(r"^(?P<scheme>https?|ftps?):\/\/(.*)", re.MULTILINE | re.IGNORECASE)
 
-    def __init__(self, manifest: Manifest):
+    def __init__(self, manifest: Book, base_dir: Path | None = None):
         self.env = get_environment()
 
         self.manifest = manifest
+        """The book whose `config.markdown` this creator renders with."""
+
+        self.base_dir = base_dir if base_dir is not None else self.env.work_dir
+        """Folder chapter/content sources are resolved against - the owning manifest's own folder,
+        which for an included sub-book is not the same as the root manifest's `env.work_dir`."""
 
     def create(self, text: str, content_type: ContentType) -> str:
         """
@@ -125,7 +130,7 @@ class ContentCreator:
         raise NotImplementedError(f"Cannot read URI {input.as_posix()}! Not implemented yet.")
 
     def _read_file(self, input: Path, encoding: str = "utf-8") -> tuple[str, ContentType]:
-        full_path = safe_join(self.env.work_dir, input)
+        full_path = safe_join(self.base_dir, input)
 
         # Check if path exists
         if not full_path.exists():

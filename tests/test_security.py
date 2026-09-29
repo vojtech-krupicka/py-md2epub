@@ -18,7 +18,7 @@ import pytest
 from pydantic import ValidationError
 
 from md2epub.commands import build
-from md2epub.models.public.manifest import Manifest
+from md2epub.models.public.book_content import Book
 from tests.conftest import Project
 from tests.helpers import build_or_refuse, leaks
 
@@ -174,7 +174,7 @@ def test_markdown_extension_is_allowed_with_explicit_trust(
         "    return E(**kwargs)\n",
     )
     monkeypatch.syspath_prepend(str(project.root))
-    project.manifest(config={"markdown": {"additional_extensions": [name]}})
+    project.manifest(book={"config": {"markdown": {"additional_extensions": [name]}}})
 
     try:
         project.build(trust_extensions=True)
@@ -194,7 +194,7 @@ def test_epub_suffix_cannot_redirect_the_output(project: Project, tmp_path: Path
 
     try:
         build.run(project.manifest_path, None, True)
-    except Exception:
+    except Exception:  # noqa: BLE001, S110
         pass  # refusing is fine
 
     assert not (tmp_path / "pwned.txt").exists()
@@ -227,13 +227,13 @@ def _book_named(name: str) -> dict:
 
 
 def _sub_book_named(name: str) -> dict:
-    sub = {"name": "part1", "pages": [{"type": "toc"}, "text/ch1.md"]}
+    sub = {"metadata": {"title": "Foo"}, "name": "part1", "pages": [{"type": "toc"}, "text/ch1.md"]}
     return _book([{"type": "book", "name": name, "book": sub}])
 
 
 def _sub_book_content_named(name: str) -> dict:
-    sub = {"name": name, "pages": [{"type": "toc"}, "text/ch1.md"]}
-    return _book([{"type": "book", "book": sub}])
+    sub = {"metadata": {"title": "Foo"}, "name": name, "pages": [{"type": "toc"}, "text/ch1.md"]}
+    return _book([{"type": "book", "name": "wrapper", "book": sub}])
 
 
 NAME_PLACES: dict[str, Callable[[str], dict]] = {
@@ -251,7 +251,7 @@ def test_dangerous_names_are_rejected(project: Project, place: str, name: str):
     project.manifest(book=NAME_PLACES[place](name))
 
     with pytest.raises(ValidationError):
-        Manifest.load_from_file(project.manifest_path)
+        Book.load_from_file(project.manifest_path)
 
 
 @pytest.mark.parametrize("place", NAME_PLACES)
@@ -260,7 +260,7 @@ def test_harmless_names_are_accepted(project: Project, place: str, name: str):
     """Control test: the rule must not be stricter than needed."""
     project.manifest(book=NAME_PLACES[place](name))
 
-    assert Manifest.load_from_file(project.manifest_path).title == "Test Book"
+    assert Book.load_from_file(project.manifest_path).metadata.title == "Test Book"
 
 
 @pytest.mark.parametrize("name", ["contents", "my-toc", ".hidden", "..a"])

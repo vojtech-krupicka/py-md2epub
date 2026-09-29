@@ -4,10 +4,10 @@ from urllib.parse import quote
 
 from md2epub.core.content_collector import ContentCollector
 from md2epub.core.content_creator import ContentCreator
-from md2epub.models.public.page import Page
+from md2epub.models.epub_content import EpubFile, HtmlFile
+from md2epub.models.public.book_content import Page
 from md2epub.processors.book_processor import BookProcessor
 from md2epub.processors.content_processor import ContentProcessor, HtmlInlineFile
-from md2epub.types.epub_content import EpubFile, HtmlFile
 from md2epub.utils.utils import xml_id
 
 
@@ -31,6 +31,7 @@ class PageProcessor[TModel: Page](ContentProcessor[TModel], abc.ABC):
     def __init__(self, collector: ContentCollector, parent: BookProcessor, model: TModel):
         super().__init__(collector, parent, model)
 
+        self.source_dir = parent.source_dir
         self.parent: BookProcessor = parent  # Here parent is never None, always BookProcessor
         self.toc: list = []
 
@@ -105,7 +106,7 @@ class PageProcessor[TModel: Page](ContentProcessor[TModel], abc.ABC):
         return result
 
     def create_content(self, source: Path) -> str:
-        creator = ContentCreator(self.collector.manifest)
+        creator = ContentCreator(self.parent.model, self.source_dir)
         html = creator.create_from_path(source)
 
         return html

@@ -4,8 +4,9 @@ from pathlib import Path
 
 from md2epub.core.content_collector import ContentCollector
 from md2epub.core.environment import get_environment
-from md2epub.models.public.manifest import Manifest
-from md2epub.models.public.page import PageType
+from md2epub.core.epub import Epub
+from md2epub.models.epub_content import EpubFile
+from md2epub.models.public.book_content import Book, PageType
 from md2epub.processors.book_processor import BookProcessor
 from md2epub.processors.ncx_processor import NcxContentProcessor
 from md2epub.processors.opf_processor import OpfContentProcessor
@@ -17,12 +18,11 @@ from md2epub.processors.page_processors import (
     TitlePageProcessor,
     TocPageProcessor,
 )
-from md2epub.types.epub import Epub
-from md2epub.types.epub_content import EpubFile
 
 MANIFEST_STEM = "manifest"
 MANIFEST_SUFFIXES = (".yml", ".yaml", ".json")
 EPUB_SUFFIX = ".epub"
+ZIP_SUFFIX = ".zip"
 
 
 def run(
@@ -30,6 +30,7 @@ def run(
     output_path: Path | None = None,
     overwrite: bool = False,
     trust_extensions: bool = False,
+    as_zip: bool = False,
 ) -> bool:
     """
     Run the build command.
@@ -47,13 +48,13 @@ def run(
     env.set_trust_extensions(trust_extensions)
 
     # Create manifest
-    manifest = Manifest.load_from_file(manifest_path)
+    manifest = Book.load_from_file(manifest_path)
 
     # Resolve output path for epub
     epub_path = resolve_output(
         manifest_path,
         output_path,
-        epub_suffix=manifest.config.epub.epub_suffix,
+        epub_suffix=ZIP_SUFFIX if as_zip else EPUB_SUFFIX,
         overwrite=overwrite,
     )
 
@@ -78,12 +79,6 @@ def collect(collector: ContentCollector) -> None:
     env = get_environment()
     env.logger.info("Collecting content for epub ...")
 
-    # TODO: this is not added yet
-    # app_default_files: list[Path] = [
-    #     env.static_dir / "md2epub_stylesheet.css",
-    #     env.static_dir / "md2epub_logo.png",
-    # ]
-
     # Register page processor for all page types
     BookProcessor.register_page_processor(PageType.Cover, CoverPageProcessor)
     BookProcessor.register_page_processor(PageType.Title, TitlePageProcessor)
@@ -93,7 +88,7 @@ def collect(collector: ContentCollector) -> None:
     BookProcessor.register_page_processor(PageType.Book, SubBookProcessor)
 
     # First, process root book
-    book_processor = BookProcessor(collector, parent=None, model=collector.manifest.book)
+    book_processor = BookProcessor(collector, parent=None, model=collector.manifest)
     book_processor.run()
 
     # Now we can process NCX file

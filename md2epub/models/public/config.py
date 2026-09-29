@@ -5,29 +5,9 @@ from typing import Annotated, Any, Literal
 
 from pydantic import BaseModel, Field, computed_field, model_validator
 
-from md2epub.models.public.docs import config as docs
-
-
-class EpubConfig(BaseModel, validate_assignment=True):
-    """Application configuration for the Md2ePub from Manifest file."""
-
-    epub_suffix: Annotated[Literal[".epub", ".zip"], Field(**docs.epub_suffix)] = ".epub"
-    """The suffix for the output EPUB file."""
-
-    html_suffix: Annotated[str, Field(**docs.html_suffix)] = ".xhtml"
-    """The extension for the HTML files."""
-
-    folders: Annotated[list[Path], Field(**docs.epub_folders)] = []
-    """List of folders to include in the EPUB."""
-
-    files: Annotated[list[Path], Field(**docs.epub_files)] = []
-    """List of files to include in the EPUB."""
-
-
-class ParserConfig(BaseModel, validate_assignment=True):
-    foo: Annotated[str, Field(**docs.parser_placeholder)] = "bar"
-    """Placeholder - no parser-level configuration exists yet."""
-
+from md2epub.core.environment import get_environment
+from md2epub.models.public import docs
+from md2epub.utils.utils import safe_join
 
 DEFAULT_EXTENSIONS = [
     "attr_list",
@@ -86,14 +66,8 @@ class Config(BaseModel, validate_assignment=True):
     """Optional config file from which to include additional configuration.
     This can be a YAML or JSON file."""
 
-    includes_files: Annotated[list[Path], Field(**docs.includes_files)] = []
+    included_files: Annotated[list[Path], Field(**docs.included_files)] = []
     """List of config files to included in this config."""
-
-    epub: Annotated[EpubConfig, Field(**docs.config_epub)] = EpubConfig()
-    """Basic configuration of ePub"""
-
-    parser: Annotated[ParserConfig, Field(**docs.config_parser)] = ParserConfig()
-    """Basic configuration for parser from MD to HTML"""
 
     markdown: Annotated[MarkdownConfig, Field(**docs.config_markdown)] = MarkdownConfig()
     """Basic configuration of Markdown library"""
@@ -103,7 +77,7 @@ class Config(BaseModel, validate_assignment=True):
     def on_before_model_validate(cls, data: Any) -> Any:
         # If include_file is valid, try to load it as a parent Config.
         if include_file := data.get("include_file"):
-            include_file = Path(include_file)
+            include_file = safe_join(get_environment().work_dir, include_file)
             if not include_file.exists() or not include_file.is_file():
                 raise ValueError(f"Invalid include file: '{include_file}' does not exist or is not a file.")
 
@@ -115,7 +89,7 @@ class Config(BaseModel, validate_assignment=True):
             merged_data.update(data)
 
             merged_data["include_file"] = include_file  # Keep the include_file in the merged data
-            merged_data["includes_files"].append(include_file)  # Keep track of included files
+            merged_data["included_files"].append(include_file)  # Keep track of included files
 
             return merged_data
 

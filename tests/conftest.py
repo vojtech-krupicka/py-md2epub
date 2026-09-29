@@ -52,14 +52,17 @@ class Project:
         The default book is a TOC page followed by `text/ch1.md`.
         """
         data: dict = {
-            "title": "Test Book",
-            "author": "Jane Doe",
-            "language": "en",
-            "book": {"name": "content", "pages": [{"type": "toc"}, "text/ch1.md"]},
+            "metadata": {
+                "title": "Test Book",
+                "author": "Jane Doe",
+                "language": "en",
+            },
+            "name": "content",
+            "pages": [{"type": "toc"}, "text/ch1.md"],
         }
-        data.update(top)
+        data["metadata"].update(top)
         if book:
-            data["book"] = {**data["book"], **book}
+            data.update(book)
 
         self.manifest_path = self.root / filename
         self.manifest_path.write_text(yaml.safe_dump(data, allow_unicode=True), encoding="utf-8")

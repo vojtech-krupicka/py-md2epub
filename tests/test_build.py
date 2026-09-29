@@ -112,7 +112,12 @@ class TestStructure:
                     {"type": "toc"},
                     {
                         "type": "book",
-                        "book": {"name": "part1", "title": "Part One", "pages": [{"type": "toc"}, "text/ch1.md"]},
+                        "name": "part1",
+                        "book": {
+                            "name": "part1",
+                            "metadata": {"title": "Part One"},
+                            "pages": [{"type": "toc"}, "text/ch1.md"],
+                        },
                     },
                 ]
             }
@@ -130,7 +135,12 @@ class TestStructure:
                     {"type": "toc"},
                     {
                         "type": "book",
-                        "book": {"name": "part1", "title": "Part One", "pages": [{"type": "toc"}, "text/ch1.md"]},
+                        "name": "part1",
+                        "book": {
+                            "name": "part1",
+                            "metadata": {"title": "Part One"},
+                            "pages": [{"type": "toc"}, "text/ch1.md"],
+                        },
                     },
                 ]
             }
@@ -156,6 +166,31 @@ class TestStructure:
 
         # The heading itself, and its child chapter, must still be reachable as text somewhere on the page.
         assert "Part One" in " ".join(toc.xpath("//text()"))
+
+    def test_sub_book_can_override_markdown_config(self, project: Project):
+        """A sub-book's own `config.markdown` must apply to its own chapters, not just the root's."""
+        project.write("text/part1/ch1.md", 'He said "hello".\n')
+        project.manifest(
+            book={
+                "pages": [
+                    {"type": "toc"},
+                    {
+                        "type": "book",
+                        "name": "part1",
+                        "book": {
+                            "name": "part1",
+                            "metadata": {"title": "Part One"},
+                            "config": {"markdown": {"extensions_override": ["fenced_code"]}},
+                            "pages": [{"type": "toc"}, "text/part1/ch1.md"],
+                        },
+                    },
+                ]
+            }
+        )
+        chapter = xml(zipfile.ZipFile(project.build()), "OEBPS/text/part1/ch1.xhtml")
+        text = "".join(chapter.xpath("//x:body//text()", namespaces=NS))
+
+        assert '"hello"' in text  # smarty (root's default) disabled for this sub-book only
 
     def test_chapter_toc_title_overrides_the_heading(self, project: Project):
         """`toc_title` overrides the table-of-contents label only, not the chapter's own <title>."""
@@ -213,9 +248,10 @@ class TestStructure:
                     {"type": "toc"},
                     {
                         "type": "book",
+                        "name": "part1",
                         "book": {
                             "name": "part1",
-                            "title": "The Real, Long Title Of This Part",
+                            "metadata": {"title": "The Real, Long Title Of This Part"},
                             "toc_title": "Part One",
                             "pages": [{"type": "toc"}, "text/ch1.md"],
                         },
@@ -291,6 +327,13 @@ class TestMetadata:
 
         assert creators == ["Jane Doe"]
 
+    def test_md2epub_meta_reports_the_real_version(self, epub: zipfile.ZipFile):
+        """`<meta name="md2epub">` must show the package's own version, not the `|default` fallback."""
+        opf = xml(epub, "OEBPS/content.opf")
+        content = opf.xpath("//opf:meta[@name='md2epub']/@content", namespaces=NS)
+
+        assert content == ["0.0.0"]  # the `version="0.0.0"` the `env` fixture sets up in conftest.py
+
 
 # region Content
 
@@ -323,6 +366,12 @@ class TestContent:
         cover = xml(full_epub, "OEBPS/content/cover.xhtml")
 
         assert cover.xpath("//x:img/@src", namespaces=NS) == ["../images/cover.png"]
+
+    def test_title_page_shows_the_subtitle(self, project: Project):
+        project.manifest(subtitle="The Sequel", book=FULL_BOOK)
+        title_page = xml(zipfile.ZipFile(project.build()), "OEBPS/content/title.xhtml")
+
+        assert "The Sequel" in title_page.xpath("string(//x:div)", namespaces=NS)
 
     def test_custom_page_is_rendered_from_a_template(self, project: Project):
         template = project.write(

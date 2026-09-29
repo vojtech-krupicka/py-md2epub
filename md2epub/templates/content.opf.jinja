@@ -1,31 +1,31 @@
 <?xml version="1.0"?>
-<package version="2.0" xmlns="http://www.idpf.org/2007/opf" unique-identifier="{{ manifest.book_id.id }}">
+<package version="2.0" xmlns="http://www.idpf.org/2007/opf" unique-identifier="{{ manifest.metadata.book_id.id }}">
 
     <metadata xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:opf="http://www.idpf.org/2007/opf">
         <meta name="md2epub" content="{{ manifest.version|default("0.0.1") }}" />
-        <dc:title>{{ manifest.title }}</dc:title>
-        <dc:language>{{ manifest.language }}</dc:language>
-        <dc:identifier id="{{ manifest.book_id.id }}" opf:scheme="{{ manifest.book_id.scheme }}">{{ manifest.book_id.value }}</dc:identifier>
-        <dc:creator opf:file-as="{{ manifest.author.file_as }}" opf:role="aut">{{ manifest.author.name }}</dc:creator>
-        <dc:date opf:event="creation">{{ manifest.created }}</dc:date>
-        <dc:date opf:event="publication">{{ manifest.published }}</dc:date>
-        <dc:date opf:event="modification">{{ manifest.modified }}</dc:date>
-        <dc:format>{{ manifest.format }}</dc:format>
-        {%- if manifest.rights %}<dc:rights>{{ "; ".join(manifest.rights) }}</dc:rights>{% endif %}
-        {%- if manifest.publisher %}<dc:publisher>{{ manifest.publisher }}</dc:publisher>{% endif %}
-        {% for identifier in manifest.identifiers -%}
+        <dc:title>{{ manifest.metadata.title }}</dc:title>
+        <dc:language>{{ manifest.metadata.language }}</dc:language>
+        <dc:identifier id="{{ manifest.metadata.book_id.id }}" opf:scheme="{{ manifest.metadata.book_id.scheme }}">{{ manifest.metadata.book_id.value }}</dc:identifier>
+        <dc:creator opf:file-as="{{ manifest.metadata.author.file_as }}" opf:role="aut">{{ manifest.metadata.author.name }}</dc:creator>
+        <dc:date opf:event="creation">{{ manifest.metadata.created }}</dc:date>
+        <dc:date opf:event="publication">{{ manifest.metadata.published }}</dc:date>
+        <dc:date opf:event="modification">{{ manifest.metadata.modified }}</dc:date>
+        <dc:format>{{ manifest.metadata.format }}</dc:format>
+        {%- if manifest.metadata.rights %}<dc:rights>{{ "; ".join(manifest.metadata.rights) }}</dc:rights>{% endif %}
+        {%- if manifest.metadata.publisher %}<dc:publisher>{{ manifest.metadata.publisher }}</dc:publisher>{% endif %}
+        {% for identifier in manifest.metadata.identifiers -%}
         <dc:identifier opf:scheme="{{ identifier.scheme }}">{{ identifier.value }}</dc:identifier>
         {%- endfor -%}
-        {% for contributor in manifest.contributors -%}
+        {% for contributor in manifest.metadata.contributors -%}
         <dc:contributor opf:file-as="{{ contributor.file_as }}" opf:role="{{ contributor.role }}">{{ contributor.name }}</dc:contributor>
         {%- endfor -%}
-        {% for subject in manifest.subjects -%}
+        {% for subject in manifest.metadata.subjects -%}
         <dc:subject>{{ subject }}</dc:subject>
         {%- endfor %}
-        <dc:description>{{ manifest.description }}</dc:description>
-        <meta name="calibre:title_sort" content="{{ manifest.calibre.title_sort or manifest.title }}" />
-        <meta name="calibre:series" content="{{ manifest.calibre.series }}" />
-        <meta name="calibre:series_index" content="{{ manifest.calibre.series_index }}" />
+        <dc:description>{{ manifest.metadata.description }}</dc:description>
+        <meta name="calibre:title_sort" content="{{ manifest.metadata.calibre.title_sort or manifest.metadata.title }}" />
+        <meta name="calibre:series" content="{{ manifest.metadata.calibre.series }}" />
+        <meta name="calibre:series_index" content="{{ manifest.metadata.calibre.series_index }}" />
         {#% if bookinfo.cover_page.render %}<meta name="cover" content="{{ bookinfo.cover_page.id }}" />{% endif %#}
     </metadata>
 

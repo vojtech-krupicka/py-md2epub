@@ -11,7 +11,7 @@ from md2epub.core.environment import get_environment
 from md2epub.utils.utils import xml_id
 
 if TYPE_CHECKING:
-    from md2epub.types.epub import Epub
+    from md2epub.core.epub import Epub
 
 
 TValidSuffix = Literal["*"] | list[str]

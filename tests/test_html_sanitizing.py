@@ -17,7 +17,7 @@ import pytest
 from lxml import etree
 
 from md2epub.core.content_creator import ContentCreator, ContentType
-from md2epub.models.public.manifest import Manifest
+from md2epub.models.public.book_content import Book
 
 BANNED_TAGS = {"script", "iframe", "object", "embed", "applet", "style", "link", "meta", "base", "form", "input", "svg"}
 URL_ATTRIBUTES = {"href", "src", "data", "action", "formaction", "poster", "background"}
@@ -26,7 +26,14 @@ ACTIVE_SCHEMES = re.compile(r"\s*(javascript|vbscript|data):", re.IGNORECASE)
 
 @pytest.fixture
 def creator() -> ContentCreator:
-    return ContentCreator(Manifest.load_from_string("title: T\nbook: {name: content, pages: [x.md]}"))
+    return ContentCreator(
+        Book.load_from_string("""
+        metadata:
+            title: T
+        name: content
+        pages: [x.md]
+    """)
+    )
 
 
 def convert(creator: ContentCreator, markdown: str) -> str:

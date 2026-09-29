@@ -62,3 +62,15 @@ def extract_title(html_content: str) -> str | None:
                 return text
 
     return None
+
+
+def slugify(text: str) -> str:
+    """
+    Turn arbitrary text (a folder name) into a valid, hyphen-separated `BookContentName`.
+
+    Runs of characters other than letters, digits, `.`, `_` and `-` become a single `-`, and leading
+    or trailing `-` are stripped. May return an empty string if nothing usable is left over (an
+    all-symbols name) - callers must treat that as "no usable name", not as a valid one.
+    """
+
+    return re.sub(r"[^A-Za-z0-9._-]+", "-", text).strip("-")

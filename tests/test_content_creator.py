@@ -8,14 +8,14 @@ import pytest
 
 from md2epub.core.content_creator import ContentCreator
 from md2epub.core.environment import Environment
-from md2epub.models.public.manifest import Manifest
+from md2epub.models.public.book_content import Book
 from tests.conftest import Project
 
 
 @pytest.fixture
 def creator(project: Project, env: Environment) -> ContentCreator:
     env.set_work_dir(project.root)
-    return ContentCreator(Manifest.load_from_file(project.manifest_path))
+    return ContentCreator(Book.load_from_file(project.manifest_path))
 
 
 class TestMarkdown:

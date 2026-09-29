@@ -7,10 +7,11 @@ from typing import TYPE_CHECKING, Any, ClassVar
 from pydantic import BaseModel
 
 from md2epub.core.content_collector import ContentCollector
-from md2epub.models.public.page import Book, Page, PageType, TocPage
+from md2epub.models.epub_content import HtmlFile
+from md2epub.models.public.book_content import Book, Page, PageType
+from md2epub.models.public.pages import TocPage
 from md2epub.models.toc import Toc, TocItem
 from md2epub.processors.content_processor import ContentProcessor, HtmlInlineFile
-from md2epub.types.epub_content import HtmlFile
 from md2epub.utils.filters import toc_href_filter
 from md2epub.utils.utils import xml_id
 
@@ -32,6 +33,18 @@ class BookProcessor(ContentProcessor[Book]):
 
         self.parent: BookProcessor | None = parent
         self.level = parent.level + 1 if parent else 0
+
+        # A book loaded from its own file (the root manifest, or a sub-book's `include_file`) resolves
+        # its own relative paths (chapter sources, images, `files:`, custom templates) against ITS OWN
+        # folder, not the root manifest's - an included book's folder is not necessarily the same one.
+        # An inline sub-book (no file of its own) has no folder to speak of, so it inherits its
+        # parent's, exactly as if it had been written inline in the parent's own manifest (it was).
+        if model.manifest_file:
+            self.source_dir = model.manifest_file.parent
+        elif parent:
+            self.source_dir = parent.source_dir
+        else:
+            self.source_dir = self.env.work_dir
 
         self.toc = Toc()
         self.pages: OrderedDict[PageType, list[PageItem]] = OrderedDict()
@@ -61,24 +74,24 @@ class BookProcessor(ContentProcessor[Book]):
         if self.parent is None:
             return
 
-        if not self.model.author:
-            self.model.author = self.parent.model.author
-        if not self.model.language:
-            self.model.language = self.parent.model.language
-        if not self.model.created:
-            self.model.created = self.parent.model.created
-        if not self.model.identifiers:
-            self.model.identifiers = self.parent.model.identifiers
-        if not self.model.subjects:
-            self.model.subjects = self.parent.model.subjects
-        if not self.model.description:
-            self.model.description = self.parent.model.description
-        if not self.model.publisher:
-            self.model.publisher = self.parent.model.publisher
-        if not self.model.contributors:
-            self.model.contributors = self.parent.model.contributors
-        if not self.model.rights:
-            self.model.rights = self.parent.model.rights
+        if not self.model.metadata.author:
+            self.model.metadata.author = self.parent.model.metadata.author
+        if not self.model.metadata.language:
+            self.model.metadata.language = self.parent.model.metadata.language
+        if not self.model.metadata.created:
+            self.model.metadata.created = self.parent.model.metadata.created
+        if not self.model.metadata.identifiers:
+            self.model.metadata.identifiers = self.parent.model.metadata.identifiers
+        if not self.model.metadata.subjects:
+            self.model.metadata.subjects = self.parent.model.metadata.subjects
+        if not self.model.metadata.description:
+            self.model.metadata.description = self.parent.model.metadata.description
+        if not self.model.metadata.publisher:
+            self.model.metadata.publisher = self.parent.model.metadata.publisher
+        if not self.model.metadata.contributors:
+            self.model.metadata.contributors = self.parent.model.metadata.contributors
+        if not self.model.metadata.rights:
+            self.model.metadata.rights = self.parent.model.metadata.rights
 
     def run(self):
         # First, get styles from parent
@@ -102,7 +115,7 @@ class BookProcessor(ContentProcessor[Book]):
         # If this book is not root, add its TOC to the parent. `render_toc()` above already guarantees
         # `self.toc.file` is set (it raises otherwise), so this heading can link to the sub-book's own
         # table of contents instead of being a dead `href=""`.
-        toc_title = self.model.toc_title or self.model.title
+        toc_title = self.model.toc_title or self.model.metadata.title
         if self.parent is not None:
             self.parent.add_toc_page(
                 {
@@ -117,7 +130,7 @@ class BookProcessor(ContentProcessor[Book]):
 
     def set_toc(self, file: HtmlFile, model: TocPage, stylesheets: list[HtmlInlineFile]):
         if self.toc.is_set:
-            self.env.logger.warning(f"TOC for book '{self.model.title}' already set! Skipping...")
+            self.env.logger.warning(f"TOC for book '{self.model.metadata.title}' already set! Skipping...")
             return
 
         self.toc.is_set = True
@@ -134,7 +147,7 @@ class BookProcessor(ContentProcessor[Book]):
             raise RuntimeError("Cannot render TOC for this Book, TOC has not been set yet!")
 
         self.toc.file.content = self.render(
-            self.toc.page.template_path,
+            self.toc.page.template_path(self.source_dir),
             filters={"href": toc_href_filter},
             book=self.model,
             stylesheets=self.toc.stylesheets,

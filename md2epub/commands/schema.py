@@ -3,8 +3,7 @@ from pathlib import Path
 from pydantic import BaseModel
 
 from md2epub.core.environment import get_environment
-from md2epub.models.public.manifest import Manifest
-from md2epub.models.public.page import BookContent
+from md2epub.models.public.book_content import BookContent
 from md2epub.utils.openapi import OpenApi
 
 
@@ -28,7 +27,7 @@ def run(output_dir: Path):
     openapi.set_license("MIT", "https://mit-license.org/")
     openapi.set_external_docs("GitHub", "https://github.com/vojtech-krupicka/py-md2epub")
 
-    for model in [Manifest, BookContent] + get_subclasses(BookContent):
+    for model in [BookContent] + get_subclasses(BookContent):
         openapi.add_model(model)
 
     output_dir.mkdir(parents=True, exist_ok=True)

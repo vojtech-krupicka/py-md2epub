@@ -1,6 +1,6 @@
 {% extends "@layout.xhtml.jinja" %}
 
-{% block title %}{% if book.author %}{{ book.author.name }}{{ book.title_separator }}{% endif %}{{ book.title }}{% if book.subtitle %}{{ book.title_separator }}{{ book.subtitle }}{% endif %} ({{ book.created }}){% endblock %}
+{% block title %}{% if book.metadata.author %}{{ book.metadata.author.name }}{{ book.metadata.title_separator }}{% endif %}{{ book.metadata.title }}{% if book.metadata.subtitle %}{{ book.metadata.title_separator }}{{ book.metadata.subtitle }}{% endif %} ({{ book.metadata.created }}){% endblock %}
 
 {% block content %}
 <div class="title">
@@ -8,23 +8,23 @@
     <p><img height="100%" id="{{ image.unique_id }}" src="{{ image.href }}" alt="{{ image.href }}" /></p>
     {%- endfor -%}
 
-    <div>{{ book.author.name }}</div>
-    <div>{{ book.title }}<br />{{ book.subtitle }}</div>
-    <div>{{ book.created }}</div>
-    <div>{{ book.publisher }}</div>
-    <div>{{ book.description }}</div>
+    <div>{{ book.metadata.author.name }}</div>
+    <div>{% if book.metadata.supertitle %}{{ book.metadata.supertitle }}<br />{% endif %}{{ book.metadata.title }}{% if book.metadata.subtitle %}<br />{{ book.metadata.subtitle }}{% endif %}</div>
+    <div>{{ book.metadata.created }}</div>
+    <div>{{ book.metadata.publisher }}</div>
+    <div>{{ book.metadata.description }}</div>
 
-    {% if book.rights %}
+    {% if book.metadata.rights %}
     <div>
-    {% for rights in book.rights -%}
+    {% for rights in book.metadata.rights -%}
     <p>{{ rights }}</p>
     {%- endfor -%}
     </div>
     {%- endif -%}
 
-    {% if book.identifiers %}
+    {% if book.metadata.identifiers %}
     <div>
-    {% for identifier in book.identifiers -%}
+    {% for identifier in book.metadata.identifiers -%}
     <p><em>{{ identifier.value }}</em></p>
     {%- endfor -%}
     </div>

@@ -5,7 +5,7 @@ from typing import Annotated, Any
 
 from pydantic import BaseModel, Field, model_validator
 
-from md2epub.models.public.docs import common as docs
+from md2epub.models.public import docs
 
 # region Metadata
 

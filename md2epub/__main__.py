@@ -136,6 +136,14 @@ def md2epub_command(func=None, *gargs, **gkwargs):
 
 # region Build command
 
+
+zip_extension_option = click.option(
+    "--zip",
+    is_flag=True,
+    default=False,
+    help="Return as ZIP file instead of EPUB (usefull for debuging your package).",
+)
+
 overwrite_option = click.option(
     "--overwrite",
     is_flag=True,
@@ -177,12 +185,14 @@ output_epub_argument = click.argument(
 @output_epub_argument
 @overwrite_option
 @trust_extensions_option
+@zip_extension_option
 @catch_exception(handle=(Exception))
 @md2epub_command()
 def build_command(
     input_manifest: Path | None = None,
     output_epub: Path | None = None,
     overwrite: bool = False,
+    zip: bool = False,
     trust_extensions: bool = False,
 ):
     """
@@ -219,6 +229,7 @@ def build_command(
         output_epub,
         overwrite=overwrite,
         trust_extensions=trust_extensions,
+        as_zip=zip,
     )
 
 

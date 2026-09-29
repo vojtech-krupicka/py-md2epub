@@ -7,9 +7,9 @@ from typing import TypeVar
 from pydantic import BaseModel
 
 from md2epub.core.content_collector import ContentCollector
-from md2epub.models.public.page import BookContent
+from md2epub.models.epub_content import EpubFile
+from md2epub.models.public.book_content import BookContent
 from md2epub.processors import Processor
-from md2epub.types.epub_content import EpubFile
 from md2epub.utils.utils import safe_join
 
 TModel = TypeVar("TModel")
@@ -24,6 +24,11 @@ class HtmlInlineFile(BaseModel):
 
 
 class ContentProcessor[TModel: BookContent](Processor, abc.ABC):
+    source_dir: Path
+    """Folder this content's own relative paths (sources, images, templates, `files:`) resolve
+    against - set by `BookProcessor`/`PageProcessor`, since only they know which manifest file
+    actually owns this content."""
+
     def __init__(self, collector: ContentCollector, parent: ContentProcessor | None, model: TModel):
         super().__init__(collector)
 
@@ -54,7 +59,7 @@ class ContentProcessor[TModel: BookContent](Processor, abc.ABC):
         result: list[EpubFile] = []
 
         for path in files:
-            full_path = safe_join(self.env.work_dir, path)
+            full_path = safe_join(self.source_dir, path)
             if not full_path.exists():
                 self.env.logger.warning(f"File or folder '{path}' not found! Skipping...")
                 continue

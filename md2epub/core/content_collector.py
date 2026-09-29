@@ -5,10 +5,9 @@ from operator import attrgetter
 from pydantic import BaseModel
 
 from md2epub.core.environment import get_environment
-from md2epub.models.public.manifest import Manifest
-from md2epub.models.public.page import OpfGuideType
-from md2epub.types.epub import Epub
-from md2epub.types.epub_content import EpubFile, HtmlFile, NcxFile, OpfFile, SpecialFile
+from md2epub.core.epub import Epub
+from md2epub.models.epub_content import EpubFile, HtmlFile, NcxFile, OpfFile, SpecialFile
+from md2epub.models.public.book_content import Book, OpfGuideType
 
 
 class GuideItem(BaseModel):
@@ -29,7 +28,7 @@ class SpineItem(BaseModel):
 class ContentCollector:
     """Collects and organizes content for the EPUB based on the provided manifest."""
 
-    def __init__(self, manifest: Manifest):
+    def __init__(self, manifest: Book):
         self.env = get_environment()
         """The environment object for logging and configuration."""
 

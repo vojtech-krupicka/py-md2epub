@@ -30,7 +30,7 @@ def test_document_describes_the_manifest(generated: Path):
 
     assert doc["openapi"].startswith("3.")
     assert doc["info"]["description"] != "Some description"
-    assert {"Manifest", "Book", "Chapter", "Config"} <= set(doc["components"]["schemas"])
+    assert {"Book", "Chapter", "Config"} <= set(doc["components"]["schemas"])
 
 
 def test_every_ref_resolves(generated: Path):

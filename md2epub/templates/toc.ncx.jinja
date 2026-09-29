@@ -4,18 +4,18 @@
 <ncx version="2005-1" xml:lang="en" xmlns="http://www.daisy.org/z3986/2005/ncx/">
 
     <head>
-        <meta name="dtb:uid" content="{{ manifest.book_id.value }}"/> <!-- same as in .opf -->
+        <meta name="dtb:uid" content="{{ manifest.metadata.book_id.value }}"/> <!-- same as in .opf -->
         <meta name="dtb:depth" content="1"/> <!-- 1 or higher -->
         <meta name="dtb:totalPageCount" content="0"/> <!-- must be 0 -->
         <meta name="dtb:maxPageNumber" content="0"/> <!-- must be 0 -->
     </head>
 
     <docTitle>
-        <text>{{ manifest.title }}</text>
+        <text>{{ manifest.metadata.title }}</text>
     </docTitle>
 
     <docAuthor>
-        <text>{{ manifest.author.file_as }}</text>
+        <text>{{ manifest.metadata.author.file_as }}</text>
     </docAuthor>
 
 {% set index = namespace(value=0) %}

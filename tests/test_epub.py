@@ -8,8 +8,8 @@ from pathlib import Path
 import pytest
 from pydantic import ValidationError
 
-from md2epub.types.epub import Epub
-from md2epub.types.epub_content import CssFile, EpubFile, HtmlFile, NcxFile, OpfFile
+from md2epub.core.epub import Epub
+from md2epub.models.epub_content import CssFile, EpubFile, HtmlFile, NcxFile, OpfFile
 
 # region Epub writer
 

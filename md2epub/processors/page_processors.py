@@ -1,7 +1,7 @@
 # region CoverPageProcessor
 
 
-from md2epub.models.public.page import Chapter, CoverPage, CustomPage, SubBook, TitlePage, TocPage
+from md2epub.models.public.pages import Chapter, CoverPage, CustomPage, SubBook, TitlePage, TocPage
 from md2epub.processors.page_processor import PageProcessor
 from md2epub.utils.utils import extract_title, safe_join, xml_id
 
@@ -13,7 +13,7 @@ class CoverPageProcessor(PageProcessor[CoverPage]):
 
         # Render and add content.opf
         content = self.render(
-            self.model.template_path,
+            self.model.template_path(self.source_dir),
             book=self.parent.model,
             stylesheets=stylesheets,
             cover_image=files[0] if files else None,
@@ -33,7 +33,7 @@ class TitlePageProcessor(PageProcessor[TitlePage]):
 
         # Render and add content.opf
         content = self.render(
-            self.model.template_path,
+            self.model.template_path(self.source_dir),
             book=self.parent.model,
             stylesheets=stylesheets,
             images=images,
@@ -66,7 +66,7 @@ class ChapterPageProcessor(PageProcessor[Chapter]):
         html_content = self.create_content(self.model.source)
 
         # Overide name with source name
-        source = safe_join(self.env.work_dir, self.model.source).with_suffix(".xhtml")
+        source = safe_join(self.source_dir, self.model.source).with_suffix(".xhtml")
 
         # Prepare source, stylesheets and files
         source, stylesheets, _ = self.prepare(source=source)
@@ -76,9 +76,9 @@ class ChapterPageProcessor(PageProcessor[Chapter]):
         title = extract_title(html_content) or self.model.source.stem
         toc_title = self.model.toc_title or title
 
-        # Render and dd content.opf
+        # Render and add content.opf
         content = self.render(
-            self.model.template_path,
+            self.model.template_path(self.source_dir),
             book=self.parent.model,
             stylesheets=stylesheets,
             title=title,
@@ -109,7 +109,7 @@ class CustomPageProcessor(PageProcessor[CustomPage]):
 
         # Render and dd content.opf
         content = self.render(
-            self.model.template_path,
+            self.model.template_path(self.source_dir),
             book=self.parent.model,
             stylesheets=stylesheets,
             values=self.model.values,
