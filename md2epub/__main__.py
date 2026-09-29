@@ -137,21 +137,21 @@ def md2epub_command(func=None, *gargs, **gkwargs):
 # region Build command
 
 
-zip_extension_option = click.option(
+build_zip_extension_option = click.option(
     "--zip",
     is_flag=True,
     default=False,
     help="Return as ZIP file instead of EPUB (usefull for debuging your package).",
 )
 
-overwrite_option = click.option(
+build_overwrite_option = click.option(
     "--overwrite",
     is_flag=True,
     default=False,
     help="Overwrite existing EPUB_FILE",
 )
 
-trust_extensions_option = click.option(
+build_trust_extensions_option = click.option(
     "--trust-extensions",
     is_flag=True,
     default=False,
@@ -159,7 +159,7 @@ trust_extensions_option = click.option(
     help="Allow any Markdown extension named in the manifest, not only the built-in and md2epub ones.",
 )
 
-input_manifest_argument = click.argument(
+build_input_manifest_argument = click.argument(
     "input-manifest",
     type=click.Path(exists=True, resolve_path=True, path_type=Path),
     default=None,
@@ -168,7 +168,7 @@ input_manifest_argument = click.argument(
     help="Path to the input manifest file.",
 )
 
-output_epub_argument = click.argument(
+build_output_epub_argument = click.argument(
     "output-epub",
     type=click.Path(exists=False, writable=True, resolve_path=True, path_type=Path),
     default=None,
@@ -181,11 +181,11 @@ output_epub_argument = click.argument(
 
 @cli.command(name="build")
 @common_options
-@input_manifest_argument
-@output_epub_argument
-@overwrite_option
-@trust_extensions_option
-@zip_extension_option
+@build_input_manifest_argument
+@build_output_epub_argument
+@build_overwrite_option
+@build_trust_extensions_option
+@build_zip_extension_option
 @catch_exception(handle=(Exception))
 @md2epub_command()
 def build_command(
@@ -249,23 +249,50 @@ def init_command(**kwargs):
     print("md2epub init: not implemented yet.")
 
 
+# region Unpack command
+
+
+unpack_input_epub_option = click.option(
+    "-i",
+    "--input-epub",
+    required=True,
+    type=click.Path(exists=True, resolve_path=True, path_type=Path),
+    help="Path to the input epub file.",
+)
+
+unpack_output_option = click.option(
+    "-o",
+    "--output-dir",
+    type=click.Path(file_okay=False, writable=True, resolve_path=True, path_type=Path),
+    default=".",
+    show_default=True,
+    help="Directory to unpack input epub file into (must be an empty directory, created if missing).",
+)
+
+
 @cli.command(name="unpack")
 @common_options
+@unpack_input_epub_option
+@unpack_output_option
+@catch_exception(handle=(Exception))
 @md2epub_command()
-def unpack_command(**kwargs):
+def unpack_command(input_epub: Path, output_dir: Path):
     """
     Unpack an existing EPUB file back into an editable project (a manifest plus loose files).
 
-    This is a best-effort reverse of `build`, meant for inspecting or reworking an EPUB you do not
-    have the original project for - not a guaranteed round trip. Metadata is read from the OPF, the
-    manifest's page order from the spine, and chapter content is extracted as-is (XHTML, not
-    converted back to Markdown). Page type (cover/title/toc/chapter) cannot be recovered from the
-    EPUB alone, so every spine entry comes back as a plain `chapter` page pointing at its own file.
+    This is meant to become a best-effort reverse of `build`, for inspecting or reworking an EPUB you
+    do not have the original project for - not a guaranteed round trip. Metadata would be read from
+    the OPF, the manifest's page order from the spine, and chapter content extracted as-is (XHTML, not
+    converted back to Markdown); page type (cover/title/toc/chapter) cannot be recovered from the EPUB
+    alone, so every spine entry would come back as a plain `chapter` page pointing at its own file.
 
-    Not implemented yet.
+    Currently does only the raw extraction: every file in the EPUB is written out as-is, with no
+    `manifest.yaml` reconstruction yet (everything described above is still to be implemented).
     """
 
-    print("md2epub unpack: not implemented yet.")
+    from md2epub.commands import unpack
+
+    return unpack.run(input_epub, output_dir)
 
 
 # region Schema command
@@ -283,6 +310,7 @@ schema_output_option = click.option(
 @cli.command(name="schema")
 @schema_output_option
 @common_options
+@catch_exception(handle=(Exception))
 @md2epub_command()
 def schema_command(output_dir: Path):
     """

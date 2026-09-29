@@ -8,6 +8,10 @@ from md2epub.utils.openapi import OpenApi
 
 
 def run(output_dir: Path):
+    """
+    Run the schema command.
+    """
+
     env = get_environment()
 
     openapi = OpenApi()
