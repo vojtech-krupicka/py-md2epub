@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import base64
 import json
 from pathlib import Path
 from textwrap import dedent
@@ -115,7 +116,17 @@ class OpenApi:
     def swagger(self, output: str | Path):
         template = FileTemplator(self.env.template_dir / "swagger-ui.html.jinja")
         json_spec = json.dumps(self.spec, default=str).replace("<", "\\u003c")
-        content = template.render(title=self.document.info.title, openapi=json_spec)
+
+        # Inlined so the page stays a single self-contained file, same as static/logo.svg already is.
+        favicon_base64 = base64.b64encode((self.env.static_dir / "favicon.ico").read_bytes()).decode("ascii")
+        logo_svg = (self.env.static_dir / "logo.svg").read_text(encoding="utf-8")
+
+        content = template.render(
+            title=self.document.info.title,
+            openapi=json_spec,
+            favicon_base64=favicon_base64,
+            logo_svg=logo_svg,
+        )
         Path(output).write_text(content, encoding="utf-8")
 
     @property
