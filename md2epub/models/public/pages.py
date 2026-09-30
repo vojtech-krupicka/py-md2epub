@@ -148,3 +148,16 @@ class SubBook(Page, validate_assignment=True):
         # If include_file is not set, `name` has no folder to come from - BookContent.name stays
         # required, same as for any other page.
         return data
+
+
+class Copyright(Page, validate_assignment=True):
+    """Represents the copyright page of the md2epub app."""
+
+    TYPE = PageType.Copyright
+    DEFAULT_TEMPLATE = Path("copyright.xhtml.jinja")
+
+    name: Annotated[BookContentName, Field()] = "copyright"
+    opf_spine_add: Annotated[bool, Field(**docs.opf_spine_add)] = True
+    opf_spine_aux: Annotated[bool, Field(**docs.opf_spine_aux)] = True
+    opf_guide_type: Annotated[OpfGuideType | None, Field(**docs.opf_guide_type)] = OpfGuideType.Copyright
+    opf_guide_title: Annotated[str, Field(**docs.opf_guide_title)] = "Copyright"

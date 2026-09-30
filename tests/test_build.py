@@ -10,6 +10,7 @@ from pathlib import Path
 import pytest
 
 from md2epub.commands import build
+from md2epub.core.environment import get_environment
 from tests.conftest import Project
 from tests.helpers import NS, xml, xml_errors
 
@@ -88,9 +89,42 @@ class TestStructure:
     def test_spine_and_guide(self, full_epub: zipfile.ZipFile):
         opf = xml(full_epub, "OEBPS/content.opf")
 
-        assert len(opf.xpath("//opf:spine/opf:itemref", namespaces=NS)) == 4
-        assert opf.xpath("//opf:guide/opf:reference/@type", namespaces=NS) == ["cover", "title-page", "toc"]
+        # cover, title, toc, chapter, plus the auto-added copyright page
+        assert len(opf.xpath("//opf:spine/opf:itemref", namespaces=NS)) == 5
+        assert opf.xpath("//opf:guide/opf:reference/@type", namespaces=NS) == [
+            "cover",
+            "title-page",
+            "toc",
+            "copyright-page",
+        ]
         assert opf.xpath("//opf:spine/@toc", namespaces=NS) == ["ncx"]
+
+    def test_copyright_page_is_present_but_non_linear(self, full_epub: zipfile.ZipFile):
+        """It should be part of the package (reachable, counted), just not inserted into the main reading flow."""
+        opf = xml(full_epub, "OEBPS/content.opf")
+
+        (href,) = opf.xpath("//opf:guide/opf:reference[@type='copyright-page']/@href", namespaces=NS)
+        assert "OEBPS/" + href in full_epub.namelist()
+
+        idref = opf.xpath(
+            "//opf:manifest/opf:item[@href=$href]/@id", href=href.rsplit("#", 1)[0], namespaces=NS
+        )[0]
+        (linear,) = opf.xpath(f"//opf:spine/opf:itemref[@idref='{idref}']/@linear", namespaces=NS)
+        assert linear == "no"
+
+    def test_copyright_page_embeds_the_real_logo(self, epub: zipfile.ZipFile):
+        """The logo is inlined as SVG (no separate file in the EPUB) - it must still be the current asset."""
+        page = epub.read("OEBPS/content/copyright.xhtml").decode("utf-8")
+        logo_svg = get_environment().static_dir / "logo.svg"
+
+        assert logo_svg.read_text(encoding="utf-8") in page
+
+    def test_copyright_page_logo_has_no_font_dependency(self, epub: zipfile.ZipFile):
+        """Every letter must be an outlined path - an EPUB reader has no way to fetch Fraunces/Space Mono."""
+        page = epub.read("OEBPS/content/copyright.xhtml").decode("utf-8")
+
+        assert "<text" not in page
+        assert "font-family" not in page
 
     def test_toc_page_links_to_the_chapter(self, project: Project):
         epub = zipfile.ZipFile(project.build())

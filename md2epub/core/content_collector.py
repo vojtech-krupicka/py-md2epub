@@ -8,6 +8,7 @@ from md2epub.core.environment import get_environment
 from md2epub.core.epub import Epub
 from md2epub.models.epub_content import EpubFile, HtmlFile, NcxFile, OpfFile, SpecialFile
 from md2epub.models.public.book_content import Book, OpfGuideType
+from md2epub.models.public.pages import Copyright
 
 
 class GuideItem(BaseModel):
@@ -49,6 +50,9 @@ class ContentCollector:
 
         self._ncx_file: NcxFile | None = None
         """The NCX file (XML with table of contents)."""
+
+        # Create app copyright page
+        self.manifest.pages.append(Copyright())
 
     @property
     def opf(self) -> OpfFile | None:

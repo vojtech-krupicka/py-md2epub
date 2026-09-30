@@ -1,0 +1,44 @@
+{% extends "@layout.xhtml.jinja" %}
+
+{% block title %}Markdown 2 ePUB{% endblock %}
+
+{% block styles %}
+<style>
+.copyright {
+    text-align: center;
+}
+.copyright h1 {
+    font-size: 18pt;
+}
+.copyright .logo {
+    max-width: 320px;
+    width: 60%;
+    margin: 1em auto;
+}
+.copyright .logo svg {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+.copyright .links {
+    margin-top: 2em;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="copyright">
+    <h1>This <em>ePUB</em> has been created via</h1>
+    <div class="logo">{{ logo_svg | safe }}</div>
+    <p>
+        md2epub is a free, open-source command-line tool that turns Markdown files and a YAML manifest
+        into a complete, valid EPUB - cover, table of contents, styling and all - with nothing to
+        install but the tool itself.
+    </p>
+    <p>Version: <tt>{{ version }}</tt></p>
+    <p class="links">
+        <a href="https://github.com/vojtech-krupicka/py-md2epub">Source on GitHub</a><br />
+        <a href="https://buymeacoffee.com/vojtech.krupicka">Buy me a coffee</a>
+    </p>
+</div>
+{% endblock %}

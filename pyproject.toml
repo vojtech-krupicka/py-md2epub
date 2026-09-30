@@ -47,7 +47,7 @@ md2epub = "md2epub.__main__:cli"
 include = ["md2epub*"]
 
 [tool.setuptools.package-data]
-md2epub = ["templates/*", "conf/*"]
+md2epub = ["conf/*", "static/*", "templates/*"]
 
 [tool.setuptools.dynamic]
 version = {attr = "md2epub._version_from_changelog"}

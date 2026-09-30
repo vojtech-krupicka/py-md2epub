@@ -12,6 +12,7 @@ from md2epub.processors.ncx_processor import NcxContentProcessor
 from md2epub.processors.opf_processor import OpfContentProcessor
 from md2epub.processors.page_processors import (
     ChapterPageProcessor,
+    CopyrightPageProcessor,
     CoverPageProcessor,
     CustomPageProcessor,
     SubBookProcessor,
@@ -86,6 +87,7 @@ def collect(collector: ContentCollector) -> None:
     BookProcessor.register_page_processor(PageType.Chapter, ChapterPageProcessor)
     BookProcessor.register_page_processor(PageType.Custom, CustomPageProcessor)
     BookProcessor.register_page_processor(PageType.Book, SubBookProcessor)
+    BookProcessor.register_page_processor(PageType.Copyright, CopyrightPageProcessor)
 
     # First, process root book
     book_processor = BookProcessor(collector, parent=None, model=collector.manifest)

@@ -52,6 +52,7 @@ class OpfGuideType(StrEnum):
     Notes = auto()
     Preface = auto()
     Text = auto()
+    Copyright = "copyright-page"
 
 
 # region Book Content
@@ -223,7 +224,7 @@ class Book(BookContent, validate_assignment=True):
                     # No post default pages yet, return immediatly
                     pass
                 case PageType.Copyright:
-                    # TODO: create app copyright page
+                    # Eat this page, we add our own later
                     pass
                 case _:
                     raise RuntimeError(f"Cannot create page! Invalid page type '{type}'.")

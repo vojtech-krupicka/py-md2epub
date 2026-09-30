@@ -1,7 +1,8 @@
 # region CoverPageProcessor
 
 
-from md2epub.models.public.pages import Chapter, CoverPage, CustomPage, SubBook, TitlePage, TocPage
+from md2epub import __version__
+from md2epub.models.public.pages import Chapter, Copyright, CoverPage, CustomPage, SubBook, TitlePage, TocPage
 from md2epub.processors.page_processor import PageProcessor
 from md2epub.utils.utils import extract_title, safe_join, xml_id
 
@@ -11,7 +12,7 @@ class CoverPageProcessor(PageProcessor[CoverPage]):
         # Prepare source, stylesheets and files
         source, stylesheets, files = self.prepare([self.model.cover_image])
 
-        # Render and add content.opf
+        # Render and add to content.opf
         content = self.render(
             self.model.template_path(self.source_dir),
             book=self.parent.model,
@@ -31,7 +32,7 @@ class TitlePageProcessor(PageProcessor[TitlePage]):
         # Prepare source, stylesheets and files
         source, stylesheets, images = self.prepare(self.model.images)
 
-        # Render and add content.opf
+        # Render and add to content.opf
         content = self.render(
             self.model.template_path(self.source_dir),
             book=self.parent.model,
@@ -76,7 +77,7 @@ class ChapterPageProcessor(PageProcessor[Chapter]):
         title = extract_title(html_content) or self.model.source.stem
         toc_title = self.model.toc_title or title
 
-        # Render and add content.opf
+        # Render and add to content.opf
         content = self.render(
             self.model.template_path(self.source_dir),
             book=self.parent.model,
@@ -107,7 +108,7 @@ class CustomPageProcessor(PageProcessor[CustomPage]):
         # Prepare source, stylesheets and files
         source, stylesheets, _ = self.prepare()
 
-        # Render and dd content.opf
+        # Render and add to content.opf
         content = self.render(
             self.model.template_path(self.source_dir),
             book=self.parent.model,
@@ -129,3 +130,28 @@ class SubBookProcessor(PageProcessor[SubBook]):
 
         subprocessor: BookProcessor = BookProcessor(self.collector, self.parent, self.model.book)
         subprocessor.run()
+
+
+# region CopyrightPageProcessor
+
+
+class CopyrightPageProcessor(PageProcessor[Copyright]):
+    def run(self):
+        # Prepare source, stylesheets and files
+        source, _, _ = self.prepare()
+
+        # The logo is inlined as SVG markup rather than collected as its own EPUB file - every
+        # letter is already an outlined path (see md2epub/static/logo.svg's own generation), so this
+        # has no dependency on the reader having any particular font installed.
+        logo_svg = (self.env.static_dir / "logo.svg").read_text(encoding="utf-8")
+
+        # Render and add to content.opf
+        content = self.render(
+            self.model.template_path(self.source_dir),
+            stylesheets=[],
+            version=__version__,
+            logo_svg=logo_svg,
+        )
+
+        # Finalize HTML file
+        self.finalize(content, source)
