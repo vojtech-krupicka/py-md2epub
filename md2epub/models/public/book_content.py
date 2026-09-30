@@ -158,7 +158,7 @@ class Book(BookContent, validate_assignment=True):
     """Config model for markdown converter."""
 
     pages: Annotated[list[SerializeAsAny[Page]], Field(**docs.book_pages)]
-    """List of pages in order to render in ePub."""
+    """List of pages in order to render in the EPUB."""
 
     @computed_field
     @property

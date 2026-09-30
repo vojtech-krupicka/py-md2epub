@@ -12,7 +12,7 @@ from md2epub.models.public import docs
 
 class Identifier(BaseModel, validate_assignment=True):
     """
-    Represents identifier in ePub metadata section.
+    Represents identifier in EPUB metadata section.
 
     Value of the identifier should be unique.
     Scheme is type of identifier (uuid, isbn, ...).
@@ -32,7 +32,7 @@ class Identifier(BaseModel, validate_assignment=True):
 
 class BookId(Identifier, validate_assignment=True):
     """
-    Represents ePub `unique-identifier` in ePub OPF `package` as well as main identifier
+    Represents EPUB `unique-identifier` in EPUB OPF `package` as well as main identifier
     in metadata section.
 
     See: <https://idpf.org/epub/20/spec/OPF_2.0.1_draft.htm#Section2.2.10>
@@ -74,7 +74,7 @@ class Contributor(BaseModel, validate_assignment=True):
 
 class Author(Contributor, validate_assignment=True):
     """
-    A author of the publication. It fills `creator` elements in ePub OPF `package` metadata.
+    An author of the publication. It fills `creator` elements in EPUB OPF `package` metadata.
 
     Publications can have multiple co-authors, the order of authors is presumed to define the order in which the creator's names **should** be presented by the Reading System.
 

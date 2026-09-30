@@ -18,12 +18,12 @@ def run(output_dir: Path):
 
     openapi.set_api_version("3.1.0")
     openapi.set_app_version(env.get_version())
-    openapi.set_title("voker's Markdown 2 ePub convertor")
+    openapi.set_title("voker's Markdown 2 ePUB convertor")
     openapi.set_description(
         "Reference for the `md2epub` manifest: the YAML or JSON file that describes a book and how to build it "
         "into an EPUB.\n\n"
         "The schemas below document every manifest field, including the page types (`cover`, `title`, `toc`, "
-        "`chapter`, `custom`, `subbook`) that make up the book. `Manifest` is the top-level document, so start there.\n\n"
+        "`chapter`, `custom`, `subbook`) that make up the book. `Book` is the top-level document, so start there.\n\n"
         "This is a description of the manifest file format, not a web API: there are no endpoints, only schemas. "
         "It is generated from the models with `md2epub schema`."
     )

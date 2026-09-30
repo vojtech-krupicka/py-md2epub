@@ -82,7 +82,7 @@ common_options = add_options(
 @click.group(context_settings=context_settings)
 @click.version_option(__version__, "-V", "--version", message=version_msg)
 def cli():
-    """Md2ePub - Create ePubs easily from Markdown files."""
+    """md2epub - Create EPUBs easily from Markdown files."""
 
 
 # region Commands
@@ -196,7 +196,7 @@ def build_command(
     trust_extensions: bool = False,
 ):
     """
-    Build ePub from input MANIFEST file into output EPUB_FILE.
+    Build EPUB from input MANIFEST file into output EPUB_FILE.
 
     MANIFEST can be in YAML (`.yml`, `.yaml`) or JSON (`.json`) format file or valid directory.
     According to the type of MANIFEST, the following behaviour is expected:
