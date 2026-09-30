@@ -34,11 +34,11 @@ dev = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/vojtech-krupicka/md2epub"
-Documentation = "https://github.com/vojtech-krupicka/md2epub/blob/master/README.md"
-Repository = "https://github.com/vojtech-krupicka/md2epub"
-Issues = "https://github.com/vojtech-krupicka/md2epub/issues"
-Changelog = "https://github.com/vojtech-krupicka/md2epub/blob/master/CHANGELOG.md"
+Homepage = "https://github.com/vojtech-krupicka/py-md2epub"
+Documentation = "https://github.com/vojtech-krupicka/py-md2epub/blob/master/README.md"
+Repository = "https://github.com/vojtech-krupicka/py-md2epub"
+Issues = "https://github.com/vojtech-krupicka/py-md2epub/issues"
+Changelog = "https://github.com/vojtech-krupicka/py-md2epub/blob/master/CHANGELOG.md"
 
 [project.scripts]
 md2epub = "md2epub.__main__:cli"

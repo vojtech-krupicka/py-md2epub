@@ -1,10 +1,10 @@
-# Python Markdown 2 ePub
+# voker's Markdown 2 ePub
 
 # A Python implementation of ePub creator from Markdown chapter files.
 
-# Documentation: https://github.com/vojtech-krupicka/md2epub/blob/master/README.md
-# GitHub: https://github.com/vojtech-krupicka/md2epub
-# PyPI: TBD
+# Documentation: https://github.com/vojtech-krupicka/py-md2epub/blob/master/README.md
+# GitHub: https://github.com/vojtech-krupicka/py-md2epub
+# PyPI: TBD (planned distribution name: markdown2epub)
 
 # Started by Vojtech Krupicka (<voker@email.cz>).
 

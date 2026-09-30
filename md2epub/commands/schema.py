@@ -18,7 +18,7 @@ def run(output_dir: Path):
 
     openapi.set_api_version("3.1.0")
     openapi.set_app_version(env.get_version())
-    openapi.set_title("Markdown 2 ePub convertor")
+    openapi.set_title("voker's Markdown 2 ePub convertor")
     openapi.set_description(
         "Reference for the `md2epub` manifest: the YAML or JSON file that describes a book and how to build it "
         "into an EPUB.\n\n"
