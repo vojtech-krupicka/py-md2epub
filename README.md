@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="md2epub/static/logo.svg" alt="md2epub logo" width="380">
+  <img src="https://raw.githubusercontent.com/vojtech-krupicka/py-md2epub/main/md2epub/static/logo.svg" alt="md2epub logo" width="380">
 </p>
 
 <h1 align="center">md2epub</h1>
