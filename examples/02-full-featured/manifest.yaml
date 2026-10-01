@@ -1,0 +1,61 @@
+# A manifest exercising more of the format: metadata, a custom stylesheet, a title page image, a
+# custom-templated page, Calibre series metadata, and a per-chapter table-of-contents override.
+#
+#   md2epub build examples/02-full-featured/manifest.yaml full-featured.epub
+
+metadata:
+  title: The Long Way Home
+  subtitle: Notes from a Longer Journey
+  author: Jane Doe
+  additional_authors:
+    - John Smith
+  language: en
+  subjects:
+    - Travel
+    - Memoir
+  description: >-
+    A short example manifest showing off most of what md2epub's metadata can describe - subjects,
+    contributors, rights, and a Calibre series.
+  publisher: Example Press
+  contributors:
+    - name: Ed Itor
+      role: edt
+  rights:
+    - Copyright (c) 2026 Jane Doe. All rights reserved.
+  calibre:
+    series: The Long Way
+    series_index: 1
+
+config:
+  markdown:
+    additional_extensions: [tables]
+
+stylesheets:
+  - styles/book.css
+
+pages:
+  - type: cover
+    cover_image: images/cover.jpg
+
+  - type: title
+    images: [images/logo.png]
+    render_metadata: true
+
+  - type: toc
+    render_depth: 2
+
+  - type: chapter
+    source: chapters/01-departure.md
+    toc_title: Departure
+
+  - type: chapter
+    source: chapters/02-the-road.md
+    toc_title: The Road
+
+  - type: custom
+    name: about-this-book
+    template: templates/about.xhtml.jinja
+    add_to_toc: true
+    toc_title: About This Example
+    values:
+      note: This page is rendered from a custom Jinja template, not from Markdown.

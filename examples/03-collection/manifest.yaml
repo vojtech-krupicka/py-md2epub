@@ -1,0 +1,16 @@
+# A collection assembled from two otherwise-independent books, each loaded with `include_file`.
+# Both part-1-foundations/manifest.yaml and part-2-advanced/manifest.yaml build fine on their own -
+# this manifest just also combines them into one EPUB, each part keeping its own table of contents.
+#
+#   md2epub build examples/03-collection/manifest.yaml collection.epub
+
+metadata:
+  title: The Collected Works
+  author: Jane Doe
+
+pages:
+  - type: toc
+  - type: book
+    include_file: part-1-foundations/manifest.yaml
+  - type: book
+    include_file: part-2-advanced/manifest.yaml

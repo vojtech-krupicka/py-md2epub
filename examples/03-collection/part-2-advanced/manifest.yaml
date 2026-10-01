@@ -1,0 +1,8 @@
+# Also independently buildable - see part-1-foundations/manifest.yaml for the full explanation.
+
+metadata:
+  title: Part Two - Advanced Topics
+
+pages:
+  - type: toc
+  - chapters/01-going-further.md

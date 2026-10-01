@@ -1,0 +1,21 @@
+{#- A custom page's template search path is scoped to its own folder, so it can't {% extends %}
+   md2epub's built-in @layout.xhtml.jinja (that lives in the package's own templates/ dir) - this
+   page writes out the same XHTML shell by hand instead. -#}
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+    <head>
+    <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=utf-8" />
+    <title>About This Example</title>
+    {% for stylesheet in stylesheets -%}
+    <link rel="stylesheet" href="{{ stylesheet.href }}" type="{{ stylesheet.mimetype }}" />
+    {% endfor -%}
+    </head>
+    <body>
+    <div class="about">
+        <h1>About This Example</h1>
+        <p>{{ values.note }}</p>
+        <p>Its book title, for reference, is <em>{{ book.metadata.title }}</em>.</p>
+    </div>
+    </body>
+</html>

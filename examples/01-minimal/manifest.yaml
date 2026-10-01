@@ -1,0 +1,12 @@
+# The simplest manifest md2epub accepts: a title, a cover, and two chapters.
+#
+#   md2epub build examples/01-minimal/manifest.yaml minimal.epub
+
+metadata:
+  title: A Minimal Example
+  author: Jane Doe
+
+pages:
+  - type: cover_title_toc # shorthand for cover + title + toc in one entry
+  - chapters/01-introduction.md # a plain string is shorthand for {type: chapter, source: ...}
+  - chapters/02-conclusion.md

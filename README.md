@@ -43,6 +43,9 @@ Requires Python 3.12+.
 
 ## Usage
 
+See [`examples/`](examples/) for three complete, working manifests from minimal to a multi-book
+collection — each builds on its own with no setup beyond `md2epub build`.
+
 ```bash
 md2epub init -o my-book       # scaffold a starter project
 md2epub build my-book/manifest.yaml my-book.epub

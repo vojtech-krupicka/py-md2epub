@@ -9,6 +9,7 @@ from pathlib import Path
 
 import pytest
 
+from md2epub import __version__
 from md2epub.commands import build
 from md2epub.core.environment import get_environment
 from tests.conftest import Project
@@ -366,7 +367,10 @@ class TestMetadata:
         opf = xml(epub, "OEBPS/content.opf")
         content = opf.xpath("//opf:meta[@name='md2epub']/@content", namespaces=NS)
 
-        assert content == ["0.0.0"]  # the `version="0.0.0"` the `env` fixture sets up in conftest.py
+        # `Book.version` returns the module-level `md2epub.__version__` (resolved from CHANGELOG.md
+        # at install time) - not `env.get_version()`, which is a separate value the `env` fixture sets
+        # up in conftest.py. Compare against the real thing rather than hardcoding today's value.
+        assert content == [__version__]
 
 
 # region Content
