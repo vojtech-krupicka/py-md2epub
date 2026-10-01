@@ -43,7 +43,7 @@ def _version_from_changelog() -> str:
 # whatever version was baked in at build time (see `_version_from_changelog` above). Only fall
 # back to reading CHANGELOG.md directly when there is no install to ask (e.g. PYTHONPATH=. dev use).
 try:
-    __version__ = version("md2epub")
+    __version__ = version("markdown2epub")
 except PackageNotFoundError:
     __version__ = _version_from_changelog()
 

@@ -3,9 +3,9 @@ requires      = ["setuptools>=61.0.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "md2epub"
+name = "markdown2epub"
 dynamic = ["version"]
-description = "A simple python program which creates ePub publication from given list of chapters written in Markdown."
+description = "A command-line tool that builds valid EPUB publications from Markdown chapters, driven by a YAML/JSON manifest."
 readme = {file = 'README.md', content-type='text/markdown'}
 authors = [{ name = "Vojtěch Krupička", email = "voker@email.cz" }]
 license = { file = "LICENSE" }
