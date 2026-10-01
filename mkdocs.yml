@@ -1,5 +1,6 @@
 site_name: md2epub
 site_description: A command-line tool that builds valid EPUB publications from Markdown chapters, driven by a YAML/JSON manifest.
+site_url: https://vojtech-krupicka.github.io/py-md2epub/
 repo_url: https://github.com/vojtech-krupicka/py-md2epub
 repo_name: vojtech-krupicka/py-md2epub
 edit_uri: edit/main/docs/
