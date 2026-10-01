@@ -1,55 +1,76 @@
-import logging
-import sys
-import warnings
-from functools import partial, wraps
+import re
+from pathlib import Path, PurePosixPath, PureWindowsPath
 
-import click
+from lxml import etree
 
 
-def get_logger(name: str = "md2epub"):
-    return logging.getLogger(name)
+def safe_join(root: Path, rel: Path) -> Path:
+    p = (root / rel).resolve()  # absolute rel discards root; resolve() follows symlinks
+    if not p.is_relative_to(root.resolve()):
+        raise ValueError(f"'{rel}' escapes the project directory")
+    return p
 
 
-def setup_logging(level: int = logging.INFO) -> logging.Logger:
+def safe_entry_name(filename: str | Path) -> str:
     """
-    Setup logging.
+    Validate and normalize the name of an entry inside the EPUB (a zip archive).
+
+    Entry names must be relative and must stay inside the archive, otherwise a program extracting the
+    EPUB without its own checks could write outside of the target folder (zip-slip).
+
+    Raises:
+        ValueError: if the name is empty, absolute, contains `..`, a drive letter or a NUL byte.
     """
 
-    formatter = logging.Formatter(
-        '%(asctime)s %(name)s %(levelname)s: "%(message)s" (%(module)s:%(funcName)s:%(lineno)s)'
-    )
-    handler = logging.StreamHandler(sys.stdout)
-    handler.name = "Md2EpubStreamHandler"
-    handler.setFormatter(formatter)
+    # Zip entries always use "/", treat a backslash as a separator too so "a\..\b" is caught on every OS
+    name = str(filename).replace("\\", "/")
+    path = PurePosixPath(name)
 
-    logger = get_logger()
-    logger.setLevel(level)
-    logger.propagate = False
-    logger.addHandler(handler)
+    if not path.parts or path.is_absolute() or ".." in path.parts or "\x00" in name or PureWindowsPath(name).drive:
+        raise ValueError(f"Unsafe EPUB entry name {str(filename)!r}: must be a relative path inside the archive.")
 
-    if level <= logging.WARNING:
-        # Ensure deprecation warnings get displayed
-        warnings.filterwarnings("default")
-        logging.captureWarnings(True)
-        warn_logger = logging.getLogger("py.warnings")
-        warn_logger.addHandler(handler)
-
-    return logger
+    return path.as_posix()
 
 
-def catch_exception(func=None, *, handle, message=None):
-    if not func:
-        return partial(catch_exception, handle=handle)
+def xml_id(text: str) -> str:
+    """
+    Turn `text` into a valid XML `Name`, used as an `id`/`idref` in the OPF and NCX.
 
-    @wraps(func)
-    def wrapper(*args, **kwargs):
-        try:
-            return func(*args, **kwargs)
-        except handle as e:
-            # if not message:
-            message = f"Error occurs in '{func.__name__}' command!"
+    An XML Name must start with a letter or `_`. Everything outside `[A-Za-z0-9_.-]` is replaced with
+    `_`, and an `_` is prepended if the result would still start with something else - most commonly
+    a digit, e.g. a chapter file named `01-intro.md`.
+    """
 
-            get_logger().exception(message)
-            # raise click.ClickException(e)
+    safe = re.sub(r"[^A-Za-z0-9_.-]", "_", text) or "_"
+    if not re.match(r"[A-Za-z_]", safe):
+        safe = f"_{safe}"
+    return safe
 
-    return wrapper
+
+def extract_title(html_content: str) -> str | None:
+    """The chapter's first heading (<h1> - <h6>), if it has one."""
+    try:
+        document = etree.fromstring(f"<div>{html_content}</div>")
+    except etree.XMLSyntaxError:
+        return None
+
+    for level in range(1, 7):
+        heading = document.find(f".//h{level}")
+        if heading is not None:
+            text = "".join(map(str, heading.itertext())).strip()
+            if text:
+                return text
+
+    return None
+
+
+def slugify(text: str) -> str:
+    """
+    Turn arbitrary text (a folder name) into a valid, hyphen-separated `BookContentName`.
+
+    Runs of characters other than letters, digits, `.`, `_` and `-` become a single `-`, and leading
+    or trailing `-` are stripped. May return an empty string if nothing usable is left over (an
+    all-symbols name) - callers must treat that as "no usable name", not as a valid one.
+    """
+
+    return re.sub(r"[^A-Za-z0-9._-]+", "-", text).strip("-")

@@ -1,26 +1,30 @@
 {
-  "name": "MD to ePUB",
+  "name": "Markdown to ePUB",
   "customizations": {
     "vscode": {
       "extensions": [
         "ms-python.python",
         "ms-python.debugpy",
         "charliermarsh.ruff",
-        "redhat.vscode-yaml"
+        "redhat.vscode-yaml",
+        "tamasfe.even-better-toml"
       ],
       "settings": {
-        "python.defaultInterpreterPath": "/usr/bin/python3"
+        "python.defaultInterpreterPath": "/app/.venv/bin/python"
       }
     }
   },
   "build": {
       "context": "${localWorkspaceFolder}",
-      "dockerfile": "${localWorkspaceFolder}/Dockerfile"
+      "dockerfile": "${localWorkspaceFolder}/Dockerfile",
+      "target": "devel"
   },
   "mounts": [
     "source=${localWorkspaceFolder},target=/app,type=bind",
-    //"source=${localWorkspaceFolder}/../my-cv,target=/app/data,type=bind"
+    "source=${localWorkspaceFolder}/../py-md2epub-workdir,target=/app/workdir,type=bind"
   ],
   "remoteUser": "vscode",
-  "workspaceFolder": "/app"
+  "workspaceFolder": "/app",
+  "postCreateCommand": "uv sync --extra dev",
+  "postAttachCommand": "uv sync --extra dev"  
 }

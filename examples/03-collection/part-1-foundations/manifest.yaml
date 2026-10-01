@@ -1,0 +1,13 @@
+# A standalone book - this builds on its own:
+#
+#   md2epub build examples/03-collection/part-1-foundations/manifest.yaml part-1.epub
+#
+# ...and is also included as one part of the collection in ../manifest.yaml via `include_file`.
+# `name` is left unset on purpose: it's derived from this folder's own name ("part-1-foundations").
+
+metadata:
+  title: Part One - Foundations
+
+pages:
+  - type: toc
+  - chapters/01-first-principles.md

@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="SwaggerUI" />
+    <title>{{ title }}</title>
+    <link rel="icon" type="image/x-icon" href="data:image/x-icon;base64,{{ favicon_base64 }}" />
+    <link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist@5.32.0/swagger-ui.css" />
+    <style>
+      .md2epub-header {
+        display: flex;
+        align-items: center;
+        padding: 12px 20px;
+        background: #EFE9DC;
+        border-bottom: 1px solid #d8d2c2;
+      }
+      .md2epub-header a {
+        display: block;
+        height: 48px;
+      }
+      .md2epub-header svg {
+        height: 100%;
+        width: auto;
+        display: block;
+      }
+    </style>
+  </head>
+  <body>
+  <div class="md2epub-header">
+    <a href="https://github.com/vojtech-krupicka/py-md2epub" title="md2epub on GitHub">{{ logo_svg | safe }}</a>
+  </div>
+  <div id="swagger-ui"></div>
+  <script src="https://unpkg.com/swagger-ui-dist@5.32.0/swagger-ui-bundle.js" crossorigin></script>
+  <script src="https://unpkg.com/swagger-ui-dist@5.32.0/swagger-ui-standalone-preset.js" crossorigin></script>
+  <script>
+    window.onload = () => {
+      window.ui = SwaggerUIBundle({
+        spec: {{ openapi | safe }},
+        dom_id: '#swagger-ui',
+        deepLinking: true,
+        presets: [
+          SwaggerUIBundle.presets.apis,
+          SwaggerUIStandalonePreset
+        ],
+        plugins: [
+          SwaggerUIBundle.plugins.DownloadUrl
+        ],
+        layout: "StandaloneLayout",
+      });
+    };
+  </script>
+  </body>
+</html>

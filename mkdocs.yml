@@ -1,0 +1,48 @@
+site_name: md2epub
+site_description: A command-line tool that builds valid EPUB publications from Markdown chapters, driven by a YAML/JSON manifest.
+repo_url: https://github.com/vojtech-krupicka/py-md2epub
+repo_name: vojtech-krupicka/py-md2epub
+edit_uri: edit/main/docs/
+
+theme:
+  name: material
+  logo: assets/icon.svg
+  favicon: assets/favicon.ico
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: green
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: green
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.instant
+    - navigation.tracking
+    - navigation.sections
+    - content.code.copy
+    - content.action.edit
+
+nav:
+  - Home: index.md
+  - Getting started: getting-started.md
+  - Manifest reference: manifest-reference.md
+  - CLI reference: cli-reference.md
+  - Security: security.md
+  - Examples: examples.md
+  - Roadmap: roadmap.md
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.highlight
+  - pymdownx.inlinehilite
+  - tables
+  - toc:
+      permalink: true

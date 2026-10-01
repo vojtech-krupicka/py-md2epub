@@ -1,10 +1,10 @@
-# Python Markdown 2 ePub
+# voker's Markdown 2 ePUB
 
-# A Python implementation of ePub creator from Markdown chapter files.
+# A Python implementation of an EPUB creator from Markdown chapter files.
 
-# Documentation: https://github.com/vojtech-krupicka/md2epub/blob/master/README.md
-# GitHub: https://github.com/vojtech-krupicka/md2epub
-# PyPI: TBD
+# Documentation: https://github.com/vojtech-krupicka/py-md2epub/blob/main/README.md
+# GitHub: https://github.com/vojtech-krupicka/py-md2epub
+# PyPI: TBD (planned distribution name: markdown2epub)
 
 # Started by Vojtech Krupicka (<voker@email.cz>).
 
@@ -12,18 +12,42 @@
 
 # License: MIT (see LICENSE.md for details).
 
-from __future__ import annotations
+import os
+import re
+import sys
+from importlib.metadata import PackageNotFoundError, version
+from pathlib import Path
 
-from importlib import resources
+NO_VERSION = "0.0.0"
 
-import tomllib
-from kachlog.utils import ChangelogUtils
 
-from md2epub.models.config import Config
+def _version_from_changelog() -> str:
+    """
+    Read the most recent version heading from CHANGELOG.md, e.g. "## [0.1.0] - 2026-09-23".
 
-# Get current version from CHANGELOG.md
-__version__ = ChangelogUtils().get_current_version()
+    This only works from a source checkout (CHANGELOG.md is not shipped inside the installed
+    package). It exists for two callers: `pyproject.toml`'s `[tool.setuptools.dynamic]` reads it
+    at build time (before the package has any installed metadata to read back), and it is the
+    fallback below for running straight from a checkout with no install at all.
+    """
 
-# Load config file as resource
-_cfg = tomllib.loads(resources.read_text("md2epub.conf", "config.toml"))
-current_config = Config(**_cfg)
+    changelog = Path(__file__).resolve().parent.parent / "CHANGELOG.md"
+    if not changelog.is_file():
+        return NO_VERSION
+
+    match = re.search(r"^## \[(\d+\.\d+\.\d+(?:[-+][\w.]*)?)\]", changelog.read_text(encoding="utf-8"), re.MULTILINE)
+    return match.group(1) if match else NO_VERSION
+
+
+# The installed package's own metadata is the real, fast source of truth at runtime - it holds
+# whatever version was baked in at build time (see `_version_from_changelog` above). Only fall
+# back to reading CHANGELOG.md directly when there is no install to ask (e.g. PYTHONPATH=. dev use).
+try:
+    __version__ = version("md2epub")
+except PackageNotFoundError:
+    __version__ = _version_from_changelog()
+
+# Get some constants
+__appname__ = "md2epub"
+__python_version__ = f"{sys.version_info.major}.{sys.version_info.minor}"
+__pgkdir__ = os.path.dirname(os.path.abspath(__file__))

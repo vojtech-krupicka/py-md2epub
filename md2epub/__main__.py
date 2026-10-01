@@ -1,22 +1,22 @@
 from __future__ import annotations
 
 import logging
-import os
 import sys
+from functools import partial, wraps
 from pathlib import Path
 
 import click
 
-from md2epub import __version__
-from md2epub.utils.utils import catch_exception, setup_logging
+from md2epub import __appname__, __pgkdir__, __python_version__, __version__
+from md2epub.core.environment import setup_environment
+from md2epub.utils.exceptions import catch_exception
+from md2epub.utils.timing import timing
 
-PYTHON_VERSION = f"{sys.version_info.major}.{sys.version_info.minor}"
-PKG_DIR = os.path.dirname(os.path.abspath(__file__))
+# Defaults
+defaul_log_cfg_path = Path(__file__).parent / "conf" / "logging.yaml"
+default_log_level = logging.INFO
 
-# Setup logging for the first time and get logger
-logger = setup_logging()
-
-# region Default options
+# region Click default options
 
 
 def add_options(*opts):
@@ -31,14 +31,13 @@ def add_options(*opts):
 def verbose_option(f):
     def callback(ctx, param, value):
         if value:
-            logger.setLevel(logging.DEBUG)
+            return logging.DEBUG
 
     return click.option(
         "-v",
         "--verbose",
         is_flag=True,
-        expose_value=False,
-        help="Enable verbose output",
+        help="Enable verbose output (i.e. DEBUG).",
         callback=callback,
     )(f)
 
@@ -46,81 +45,300 @@ def verbose_option(f):
 def quiet_option(f):
     def callback(ctx, param, value):
         if value:
-            logger.setLevel(logging.CRITICAL)
+            return logging.CRITICAL
 
     return click.option(
         "-q",
         "--quiet",
         is_flag=True,
-        expose_value=False,
-        help="Silence warnings",
+        help="Silence warnings.",
         callback=callback,
     )(f)
 
 
-common_options = add_options(quiet_option, verbose_option)
-context_settings = {"help_option_names": ["-h", "--help"], "max_content_width": 120}
-
-version_msg = f"%(prog)s, version %(version)s from {PKG_DIR} (Python {PYTHON_VERSION})"
-build_cmd_short_help = "Compile epub from input MANIFEST file into output EPUB_FILE."
-build_cmd_overwrite_help = "overwrite EPUB_FILE ePub if exists."
+def log_cfg_path_option(f):
+    log_cfg_path_type = click.Path(exists=True, writable=False, resolve_path=True, path_type=Path)
+    return click.option(
+        "--log-cfg-path",
+        type=log_cfg_path_type,
+        default=defaul_log_cfg_path.as_posix(),
+        metavar="LOG_CONF_FILE",
+        envvar="MD2EPUB_LOG_CONF_FILE",
+        help=f"Path to the logging config file in YAML format (default '{defaul_log_cfg_path}').",
+    )(f)
 
 
 # region Cli group
 
+context_settings = {"help_option_names": ["-h", "--help"], "max_content_width": 120}
+version_msg = f"{__appname__}, version {__version__} from {__pgkdir__} (Python {__python_version__})"
+common_options = add_options(
+    quiet_option,
+    verbose_option,
+    log_cfg_path_option,
+)
+
 
 @click.group(context_settings=context_settings)
-@common_options
-@click.version_option(
-    __version__,
-    "-V",
-    "--version",
-    message=version_msg,
-)
+@click.version_option(__version__, "-V", "--version", message=version_msg)
 def cli():
-    """Md2ePub - Create ePubs easily from Markdown files."""
+    """md2epub - Create EPUBs easily from Markdown files."""
+
+
+# region Commands
+
+
+def md2epub_command(func=None, *gargs, **gkwargs):
+    if not func:
+        return partial(md2epub_command, *gargs, **gkwargs)
+
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        def parse_cmd_name():
+            return func.__name__.removesuffix("_command").replace("_", "-")
+
+        args += gargs
+        kwargs.update(gkwargs)
+
+        # Parse command name from func name if not set, strip `_command` from its end and replace `_` to `-`
+        cmd_name = kwargs.pop("cmd_name", parse_cmd_name())
+
+        # Pop both unconditionally: `or` short-circuits and would leave the other one in kwargs,
+        # which build_command() does not accept (TypeError, silently swallowed further down).
+        quiet = kwargs.pop("quiet", None)
+        verbose = kwargs.pop("verbose", None)
+        log_level = quiet or verbose or default_log_level
+        log_cfg_path = kwargs.pop("log_cfg_path", defaul_log_cfg_path)
+
+        # Setup and get get environment
+        appname = f"{__appname__}-{cmd_name}"
+        env = setup_environment(appname, version=__version__)
+        env.setup_logger(
+            log_cfg_path,
+            name=appname,
+            logging_level=log_level,
+        )
+
+        try:
+            # Run command
+            env.logger.info(f"Running command '{cmd_name}' ...")
+
+            with timing() as t:
+                func(*args, **kwargs)
+
+            env.logger.info(f"Command '{cmd_name}' finished successfully in {t}.")
+        except Exception:
+            env.logger.exception(f"Error in '{cmd_name}' command!")
+            sys.exit(1)
+
+    return wrapper
 
 
 # region Build command
 
-build_input_type = click.Path(exists=True, resolve_path=True, path_type=Path)
-build_output_type = click.Path(exists=False, writable=True, resolve_path=True, path_type=Path)
+
+build_zip_extension_option = click.option(
+    "--zip",
+    is_flag=True,
+    default=False,
+    help="Return as ZIP file instead of EPUB (usefull for debuging your package).",
+)
+
+build_overwrite_option = click.option(
+    "--overwrite",
+    is_flag=True,
+    default=False,
+    help="Overwrite existing EPUB_FILE",
+)
+
+build_trust_extensions_option = click.option(
+    "--trust-extensions",
+    is_flag=True,
+    default=False,
+    envvar="MD2EPUB_TRUST_EXTENSIONS",
+    help="Allow any Markdown extension named in the manifest, not only the built-in and md2epub ones.",
+)
+
+build_input_manifest_argument = click.argument(
+    "input-manifest",
+    type=click.Path(exists=True, resolve_path=True, path_type=Path),
+    default=None,
+    metavar="MANIFEST",
+    envvar="MD2EPUB_MANIFEST_ARGUMENT",
+    help="Path to the input manifest file.",
+)
+
+build_output_epub_argument = click.argument(
+    "output-epub",
+    type=click.Path(exists=False, writable=True, resolve_path=True, path_type=Path),
+    default=None,
+    required=False,
+    metavar="EPUB_FILE",
+    envvar="MD2EPUB_EPUB_ARGUMENT",
+    help="Path to the output EPUB file.",
+)
 
 
 @cli.command(name="build")
-@click.argument("input", type=build_input_type, default=None, required=False, metavar="MANIFEST")
-@click.argument("output", type=build_output_type, default=None, required=False, metavar="EPUB_FILE")
-@click.option("--overwrite", is_flag=True, default=False, help=build_cmd_overwrite_help)
+@common_options
+@build_input_manifest_argument
+@build_output_epub_argument
+@build_overwrite_option
+@build_trust_extensions_option
+@build_zip_extension_option
+@catch_exception(handle=(Exception))
+@md2epub_command()
+def build_command(
+    input_manifest: Path | None = None,
+    output_epub: Path | None = None,
+    overwrite: bool = False,
+    zip: bool = False,
+    trust_extensions: bool = False,
+):
+    """
+    Build EPUB from input MANIFEST file into output EPUB_FILE.
+
+    MANIFEST can be in YAML (`.yml`, `.yaml`) or JSON (`.json`) format file or valid directory.
+    According to the type of MANIFEST, the following behaviour is expected:
+        - if MANIFEST is a valid file, then this file will be read as input configuration and its
+            parent folder will be set as `work_dir`.
+        - if MANIFEST is a valid directory, then within this directory one of the following files
+            will be searched: `manifest.yml`, `manifest.yaml`, `manifest.json`. Then the MANIFEST
+            directory will be set as `work_dir`.
+        - if MANIFEST is None, then the current directory will be set as valid directory and the
+            same behaviour as above is expected.
+
+    EPUB_FILE is the output, which can be set to:
+        - valid file, then this file is the output,
+        - valid directory, then name of the directory is output file name with `.epub` extension,
+        - None, then first, MANIFEST name is checked and if its not default `manifest` name, then
+            this name will be used, else, name of the parent directory is used with `.epub` extension.
+
+    Correct extension of the output EPUB_FILE will be automatically added if not specified. It can
+    overriden by specifying custom output extension in the MANIFEST file under
+    `config.md2epub.epub_suffix` key.
+
+    If the resolved output EPUB_FILE already exists, it will be overwritten only if the
+    `--overwrite` option is specified, otherwise an error will be raised.
+    """
+
+    from md2epub.commands import build
+
+    return build.run(
+        input_manifest,
+        output_epub,
+        overwrite=overwrite,
+        trust_extensions=trust_extensions,
+        as_zip=zip,
+    )
+
+
+# region Init command
+
+init_output_option = click.option(
+    "-o",
+    "--output-dir",
+    type=click.Path(file_okay=False, writable=True, resolve_path=True, path_type=Path),
+    default=".",
+    show_default=True,
+    help=(
+        "Directory to init epub file structure with manifest.yaml into "
+        "(must be an empty directory, created if missing)."
+    ),
+)
+
+
+@cli.command(name="init")
+@common_options
+@init_output_option
+@catch_exception(handle=(Exception))
+@md2epub_command()
+def init_command(output_dir: Path):
+    """
+    Initialize a new md2epub project.
+
+    Creates a starter manifest plus the folder structure it expects (chapters, images, styles),
+    so `md2epub build` has something to build right away.
+    """
+
+    from md2epub.commands import init
+
+    return init.run(output_dir)
+
+
+# region Unpack command
+
+
+unpack_input_epub_option = click.option(
+    "-i",
+    "--input-epub",
+    required=True,
+    type=click.Path(exists=True, resolve_path=True, path_type=Path),
+    help="Path to the input epub file.",
+)
+
+unpack_output_option = click.option(
+    "-o",
+    "--output-dir",
+    type=click.Path(file_okay=False, writable=True, resolve_path=True, path_type=Path),
+    default=".",
+    show_default=True,
+    help="Directory to unpack input epub file into (must be an empty directory, created if missing).",
+)
+
+
+@cli.command(name="unpack")
+@common_options
+@unpack_input_epub_option
+@unpack_output_option
+@catch_exception(handle=(Exception))
+@md2epub_command()
+def unpack_command(input_epub: Path, output_dir: Path):
+    """
+    Unpack an existing EPUB file back into an editable project (a manifest plus loose files).
+
+    This is meant to become a best-effort reverse of `build`, for inspecting or reworking an EPUB you
+    do not have the original project for - not a guaranteed round trip. Metadata would be read from
+    the OPF, the manifest's page order from the spine, and chapter content extracted as-is (XHTML, not
+    converted back to Markdown); page type (cover/title/toc/chapter) cannot be recovered from the EPUB
+    alone, so every spine entry would come back as a plain `chapter` page pointing at its own file.
+
+    Currently does only the raw extraction: every file in the EPUB is written out as-is, with no
+    `manifest.yaml` reconstruction yet (everything described above is still to be implemented).
+    """
+
+    from md2epub.commands import unpack
+
+    return unpack.run(input_epub, output_dir)
+
+
+# region Schema command
+
+schema_output_option = click.option(
+    "-o",
+    "--output-dir",
+    type=click.Path(file_okay=False, resolve_path=True, path_type=Path),
+    default=".",
+    show_default=True,
+    help="Directory to write `openapi.yaml` and `swagger-ui.html` into (created if missing).",
+)
+
+
+@cli.command(name="schema")
+@schema_output_option
 @common_options
 @catch_exception(handle=(Exception))
-def build_command(**kwargs):
+@md2epub_command()
+def schema_command(output_dir: Path):
     """
-    Compile epub from input MANIFEST file into output EPUB_FILE.
+    Generate the manifest schema as an OpenAPI document plus a browsable Swagger UI page.
 
-    MANIFEST can be YAML or JSON file or valid directory. If MANIFEST is:
-
-    - valid file, than this file has been read as input configuration and its parent
-    folder will be set as `work_dir`,
-
-    - valid directory, than within this directory one of theese `md2epub.yml|yaml|json`,
-    `manifest.yml|yaml|json` are search and the MANIFEST directory will be set as `work_dir`,
-
-    - None, than current directory is set as valid directory and than the same behaviour
-    is expected.
-
-    EPUB_FILE is output, which can be set to:
-
-    - valid file, than this file is the output,
-
-    - valid directory, than name of the directory is output file name with `.epub` extension,
-
-    - None, than first, MANIFEST name is checked and if its not default (`md2epub` or `manifest`),
-    than this name is used, else, name of the parent directory is user with `.epub` extension.
+    The schema describes every field of the manifest (and of the pages inside it), so it can be used for editor
+    validation and autocompletion or for reading the field documentation in a browser.
     """
+    from md2epub.commands import schema
 
-    from .commands import build
-
-    build.run(**kwargs)
+    return schema.run(output_dir)
 
 
 if __name__ == "__main__":

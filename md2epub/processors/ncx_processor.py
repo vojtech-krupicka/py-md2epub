@@ -1,33 +1,23 @@
-from __future__ import annotations
-
-from typing import TYPE_CHECKING, Any
-
-from md2epub import current_config as config
-from md2epub.processors.processor import Processor
+from md2epub.core.content_collector import ContentCollector
+from md2epub.models.toc import Toc
+from md2epub.processors import Processor
 from md2epub.utils.filters import toc_href_filter
-
-if TYPE_CHECKING:
-    from md2epub.builder import Builder
-
-# region NcxContentProcessor
-# #########################################################################
 
 
 class NcxContentProcessor(Processor):
-    # def __init__(self, builder: Builder, toc: Toc):
-    def __init__(self, builder: Builder, toc: Any):
-        super().__init__(builder)
+    def __init__(self, collector: ContentCollector, toc: Toc):
+        super().__init__(collector)
         self.toc = toc
 
     def run(self):
-        # Render and dd content.opf
+        # Render and add toc.ncx
         content = self.render(
-            config.TEMPLATE_DIR / "toc.ncx.jinja",
+            self.env.template_dir / "toc.ncx.jinja",
             filters={"href": toc_href_filter},
             manifest=self.collector.manifest,
-            work_dir=config.WORK_DIR,
+            work_dir=self.env.work_dir,
             toc=self.toc,
             index=0,
         )
 
-        self.collector.opf.set_ncx(content)
+        self.collector.set_ncx(content)
