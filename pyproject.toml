@@ -39,7 +39,7 @@ docs = [
 
 [project.urls]
 Homepage = "https://github.com/vojtech-krupicka/py-md2epub"
-Documentation = "https://github.com/vojtech-krupicka/py-md2epub/blob/main/README.md"
+Documentation = "https://vojtech-krupicka.github.io/py-md2epub/"
 Repository = "https://github.com/vojtech-krupicka/py-md2epub"
 Issues = "https://github.com/vojtech-krupicka/py-md2epub/issues"
 Changelog = "https://github.com/vojtech-krupicka/py-md2epub/blob/main/CHANGELOG.md"

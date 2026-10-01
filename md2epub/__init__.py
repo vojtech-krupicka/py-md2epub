@@ -2,7 +2,7 @@
 
 # A Python implementation of an EPUB creator from Markdown chapter files.
 
-# Documentation: https://github.com/vojtech-krupicka/py-md2epub/blob/main/README.md
+# Documentation: https://vojtech-krupicka.github.io/py-md2epub/
 # GitHub: https://github.com/vojtech-krupicka/py-md2epub
 # PyPI: https://pypi.org/project/markdown2epub/
 

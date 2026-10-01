@@ -82,9 +82,9 @@ Every command accepts `-v`/`-q` for more or less logging, and `-h`/`--help` for 
 
 ## Documentation
 
-The [`docs/`](docs/) site (built with MkDocs + Material) covers installation, the full manifest
-reference, the CLI reference, and the security model in more depth than this README. Build and
-browse it locally with:
+The full [documentation site](https://vojtech-krupicka.github.io/py-md2epub/) covers installation,
+the full manifest reference, the CLI reference, and the security model in more depth than this
+README. To build and browse it locally instead:
 
 ```bash
 uv sync --extra docs

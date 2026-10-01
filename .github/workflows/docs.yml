@@ -3,10 +3,6 @@ name: Docs
 on:
   push:
     branches: [main]
-    paths:
-      - "docs/**"
-      - "mkdocs.yml"
-      - ".github/workflows/docs.yml"
   workflow_dispatch:
 
 permissions:
@@ -31,6 +27,9 @@ jobs:
 
       - name: Install dependencies
         run: uv sync --extra docs
+
+      - name: Regenerate the manifest schema
+        run: uv run md2epub schema -o docs/manifest-reference
 
       - name: Build site
         run: uv run mkdocs build --strict

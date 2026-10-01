@@ -12,7 +12,7 @@ info:
 
     This is a description of the manifest file format, not a web API: there are no
     endpoints, only schemas. It is generated from the models with `md2epub schema`.'
-  version: 0.0.0
+  version: 0.1.0
   contact:
     email: voker@email.cz
   license:
@@ -29,12 +29,15 @@ components:
 
 
         Publications can have multiple co-authors, the order of authors is presumed
-        to define the order in which the creator''s names **should** be presented
-        by the Reading System.
+        to define the order in
+
+        which the creator''s names **should** be presented by the Reading System.
 
 
         Note: additional contributors whose contributions are secondary to those listed
-        in `creator` elements **should** be named in `contributor` elements.
+        in `creator`
+
+        elements **should** be named in `contributor` elements.
 
 
         See: <https://idpf.org/epub/20/spec/OPF_2.0.1_draft.htm#Section2.2.2>'
