@@ -4,7 +4,7 @@
 
 # Documentation: https://github.com/vojtech-krupicka/py-md2epub/blob/main/README.md
 # GitHub: https://github.com/vojtech-krupicka/py-md2epub
-# PyPI: TBD (planned distribution name: markdown2epub)
+# PyPI: https://pypi.org/project/markdown2epub/
 
 # Started by Vojtech Krupicka (<voker@email.cz>).
 

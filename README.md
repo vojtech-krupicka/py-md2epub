@@ -25,7 +25,19 @@ The manifest maps directly onto the EPUB OPF 2.0.1 specification (the code links
 
 ## Installation
 
-Not yet published on PyPI (the planned distribution name is `markdown2epub` — the `md2epub` name itself is taken by an unrelated package). Install from source with [uv](https://docs.astral.sh/uv/):
+Install from [PyPI](https://pypi.org/project/markdown2epub/) (the distribution is named `markdown2epub` — the `md2epub` name itself is taken by an unrelated package — but the installed command is still `md2epub`):
+
+```bash
+pip install markdown2epub
+```
+
+or with [uv](https://docs.astral.sh/uv/):
+
+```bash
+uv tool install markdown2epub
+```
+
+To install from source instead:
 
 ```bash
 git clone https://github.com/vojtech-krupicka/py-md2epub.git
