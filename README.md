@@ -62,21 +62,32 @@ md2epub build --overwrite ./my-book ./output/
 Other commands:
 
 ```bash
-md2epub unpack -i book.epub -o extracted/     # pull an EPUB's files back out
-md2epub schema -o manifest-reference/         # generate openapi.yaml + a Swagger UI page for the manifest format
+md2epub unpack -i book.epub -o extracted/            # pull an EPUB's files back out
+md2epub schema -o docs/manifest-reference/           # generate openapi.yaml + a Swagger UI page for the manifest format
 ```
 
 Every command accepts `-v`/`-q` for more or less logging, and `-h`/`--help` for its full option list; `md2epub build --help` in particular documents input/output path resolution in detail.
+
+## Documentation
+
+The [`docs/`](docs/) site (built with MkDocs + Material) covers installation, the full manifest
+reference, the CLI reference, and the security model in more depth than this README. Build and
+browse it locally with:
+
+```bash
+uv sync --extra docs
+uv run mkdocs serve
+```
 
 ## Manifest reference
 
 The manifest describes a book's metadata, build configuration, and page structure. Fields are validated with Pydantic; the authoritative, always-up-to-date reference is generated straight from those models:
 
 ```bash
-md2epub schema -o manifest-reference/
+md2epub schema -o docs/manifest-reference/
 ```
 
-This writes `openapi.yaml` (an OpenAPI document, `components.schemas` only — there are no real API paths, just the manifest's shapes) and `swagger-ui.html`, a browsable page listing every field, its type, default, and description. The overview below is a quick orientation, not a substitute for it.
+This writes `openapi.yaml` (an OpenAPI document, `components.schemas` only — there are no real API paths, just the manifest's shapes) and `swagger-ui.html`, a browsable page listing every field, its type, default, and description, embedded in the [documentation site](#documentation). The overview below is a quick orientation, not a substitute for it.
 
 ### Top-level shape
 
@@ -155,6 +166,13 @@ uv run pytest
 ```
 
 A [Dockerfile](Dockerfile) and [devcontainer](.devcontainer/devcontainer.json) are also provided for a ready-to-go development environment.
+
+To work on the [documentation site](#documentation):
+
+```bash
+uv sync --extra docs
+uv run mkdocs serve
+```
 
 ## License
 

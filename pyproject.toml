@@ -32,13 +32,17 @@ dev = [
     "pytest>=9.1.1,<10.0.0",
     "ruff>=0.16.8,<0.17.0",
 ]
+docs = [
+    "mkdocs>=1.6.1,<2.0.0",
+    "mkdocs-material>=9.6.0,<10.0.0",
+]
 
 [project.urls]
 Homepage = "https://github.com/vojtech-krupicka/py-md2epub"
-Documentation = "https://github.com/vojtech-krupicka/py-md2epub/blob/master/README.md"
+Documentation = "https://github.com/vojtech-krupicka/py-md2epub/blob/main/README.md"
 Repository = "https://github.com/vojtech-krupicka/py-md2epub"
 Issues = "https://github.com/vojtech-krupicka/py-md2epub/issues"
-Changelog = "https://github.com/vojtech-krupicka/py-md2epub/blob/master/CHANGELOG.md"
+Changelog = "https://github.com/vojtech-krupicka/py-md2epub/blob/main/CHANGELOG.md"
 
 [project.scripts]
 md2epub = "md2epub.__main__:cli"
