@@ -66,7 +66,9 @@ calibre_title_sort = {
 calibre_series = {
     "title": "Book series title",
     "examples": ["Harry Potter"],
-    "description": "The name of the series this book belongs to. Calibre uses it to group books of one series together.",
+    "description": (
+        "The name of the series this book belongs to. Calibre uses it to group books of one series together."
+    ),
 }
 calibre_series_index = {
     "title": "Index within the book series",
@@ -301,7 +303,9 @@ metadata_calibre = {
 manifest_file = {
     "title": "Book manifest file path",
     "examples": ["book/manifest.yaml"],
-    "description": "Filled in automatically from the path the book manifest was loaded from; not set by the manifest itself.",
+    "description": (
+        "Filled in automatically from the path the book manifest was loaded from; not set by the manifest itself."
+    ),
 }
 
 book_config = {

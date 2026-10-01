@@ -55,3 +55,10 @@ md2epub = ["conf/*", "static/*", "templates/*"]
 
 [tool.setuptools.dynamic]
 version = {attr = "md2epub._version_from_changelog"}
+
+[tool.ruff]
+line-length = 120
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I"]

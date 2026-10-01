@@ -76,9 +76,11 @@ class Author(Contributor, validate_assignment=True):
     """
     An author of the publication. It fills `creator` elements in EPUB OPF `package` metadata.
 
-    Publications can have multiple co-authors, the order of authors is presumed to define the order in which the creator's names **should** be presented by the Reading System.
+    Publications can have multiple co-authors, the order of authors is presumed to define the order in
+    which the creator's names **should** be presented by the Reading System.
 
-    Note: additional contributors whose contributions are secondary to those listed in `creator` elements **should** be named in `contributor` elements.
+    Note: additional contributors whose contributions are secondary to those listed in `creator`
+    elements **should** be named in `contributor` elements.
 
     See: <https://idpf.org/epub/20/spec/OPF_2.0.1_draft.htm#Section2.2.2>
     """

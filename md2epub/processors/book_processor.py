@@ -57,7 +57,8 @@ class BookProcessor(ContentProcessor[Book]):
 
         if not isinstance(processor_cls, type) and issubclass(processor_cls, PageProcessor):
             raise TypeError(
-                f"Cannot register page processor for '{page_type}' to '{processor_cls}'! processor_cls must inherit from PageProcessor class."
+                f"Cannot register page processor for '{page_type}' to '{processor_cls}'! "
+                "processor_cls must inherit from PageProcessor class."
             )
 
         cls.PAGE_PROCESSORS[page_type] = processor_cls

@@ -241,7 +241,10 @@ init_output_option = click.option(
     type=click.Path(file_okay=False, writable=True, resolve_path=True, path_type=Path),
     default=".",
     show_default=True,
-    help="Directory to init epub file structure with manifest.yaml into (must be an empty directory, created if missing).",
+    help=(
+        "Directory to init epub file structure with manifest.yaml into "
+        "(must be an empty directory, created if missing)."
+    ),
 )
 
 
