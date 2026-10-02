@@ -22,5 +22,11 @@ jobs:
       - name: Lint with ruff
         run: uv run ruff check .
 
+      - name: Check dependencies for known vulnerabilities
+        run: uv run pip-audit
+
+      - name: Static security analysis
+        run: uv run bandit -r md2epub/
+
       - name: Run tests
         run: uv run pytest

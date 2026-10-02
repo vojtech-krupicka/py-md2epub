@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 import re
-import xml.etree.ElementTree as etree
+
+# Only used for type hints below, never parses XML/HTML - safe despite bandit's blanket import warning.
+import xml.etree.ElementTree as etree  # nosec B405
 
 from markdown import Extension
 from markdown.treeprocessors import Treeprocessor
