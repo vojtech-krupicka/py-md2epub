@@ -28,5 +28,5 @@ jobs:
       - name: Static security analysis
         run: uv run bandit -r md2epub/
 
-      - name: Run tests
-        run: uv run pytest
+      - name: Run tests with coverage
+        run: uv run pytest --cov
